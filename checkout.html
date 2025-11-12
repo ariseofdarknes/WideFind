@@ -108,72 +108,86 @@
     </div>
 
     <!-- Firebase + logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    
+    
+    
+    
+    
+   <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Use same config as admin (replace if needed)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-            authDomain: "my-ecom-site-168ab.firebaseapp.com",
-            projectId: "my-ecom-site-168ab",
-            storageBucket: "my-ecom-site-168ab.firebasestorage.app",
-            messagingSenderId: "995581566071",
-            appId: "1:995581566071:web:1640d0236302d369aefa72",
-            measurementId: "G-NLHKNBHCFN"
-        };
+/* ---------------- Firebase Setup ---------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+  authDomain: "my-ecom-site-168ab.firebaseapp.com",
+  projectId: "my-ecom-site-168ab",
+  storageBucket: "my-ecom-site-168ab.firebasestorage.app",
+  messagingSenderId: "995581566071",
+  appId: "1:995581566071:web:1640d0236302d369aefa72",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+/* ---------------- Constants & Elements ---------------- */
+const DELIVERY_FEES = 80;
+const CART_STORAGE_KEY = "widefindCart";
+const SUCCESS_REDIRECT_URL = "index.html";
 
-        // --- Existing site constants (kept from your original checkout) ---
-        const DELIVERY_FEES = 80;
-        const SUCCESS_REDIRECT_URL = 'index.html';
-        const CART_STORAGE_KEY = 'widefindCart';
+const regionEl = document.getElementById("region");
+const districtEl = document.getElementById("district");
+const upazilaEl = document.getElementById("upazila");
+const applyCouponBtn = document.getElementById("apply-coupon-btn");
+const couponInput = document.getElementById("coupon-code");
+const couponStatus = document.getElementById("coupon-status");
+const placeOrderBtn = document.getElementById("place-order-btn");
+const cancelOrderBtn = document.getElementById("cancel-order-btn");
 
-        // --- State ---
-        let cartItems = [];
-        let currentPaymentMethod = 'Cash on Delivery';
-        let currentDiscount = 0;
-        let appliedCoupon = null; // stores applied coupon object {code,type,amount,allowedProducts,usageLimit}
-        let availableCoupons = []; // loaded from Firestore
-
-        // --- Helper: get cart from localStorage ---
-        function getCart() {
-            try {
-                const s = localStorage.getItem(CART_STORAGE_KEY);
-                return s ? JSON.parse(s) : [];
-            } catch (e) { console.error(e); return []; }
-        }
-
-   // --- GEO_DATA: now loaded from external file instead of inline ---
 let GEO_DATA = {};
+let cartItems = [];
+let availableCoupons = [];
+let appliedCoupon = null;
+let currentDiscount = 0;
 
+/* ---------------- HQ Animated Alert ---------------- */
+function showAlert(type, msg) {
+  const box = document.createElement("div");
+  box.className =
+    "fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl text-white font-semibold shadow-xl backdrop-blur-md transition-all duration-500 transform scale-95 opacity-0";
+  box.innerHTML =
+    type === "success"
+      ? `<svg class='w-6 h-6 text-white animate-bounce' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/></svg><span>${msg}</span>`
+      : `<svg class='w-6 h-6 text-white animate-pulse' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/></svg><span>${msg}</span>`;
+  box.style.background =
+    type === "success"
+      ? "linear-gradient(90deg,#10B981,#34D399)"
+      : "linear-gradient(90deg,#EF4444,#F87171)";
+  document.body.appendChild(box);
+  setTimeout(() => {
+    box.style.opacity = "1";
+    box.style.transform = "scale(1)";
+  }, 50);
+  setTimeout(() => {
+    box.style.opacity = "0";
+    box.style.transform = "scale(0.95)";
+    setTimeout(() => box.remove(), 400);
+  }, 3000);
+}
+
+/* ---------------- Geo Data Loader ---------------- */
 fetch("geo_data.json")
   .then(res => res.json())
   .then(data => {
     GEO_DATA = data;
-    populateRegions(); // now fill the region dropdown
+    populateRegions();
   })
-  .catch(err => console.error("Failed to load geo data:", err));
+  .catch(err => console.error("Failed to load geo_data:", err));
 
-// --- UI refs ---
-const regionEl = document.getElementById('region');
-const districtEl = document.getElementById('district');
-const upazilaEl = document.getElementById('upazila');
-const cartSummaryBody = document.getElementById('cart-summary-body');
-const priceSummaryFoot = document.getElementById('price-summary-foot');
-const applyCouponBtn = document.getElementById('apply-coupon-btn');
-const couponInput = document.getElementById('coupon-code');
-const couponStatus = document.getElementById('coupon-status');
-const placeOrderBtn = document.getElementById('place-order-btn');
-const cancelOrderBtn = document.getElementById('cancel-order-btn');
-
-// --- Populate regions (simple) ---
 function populateRegions() {
   regionEl.innerHTML = '<option value="" disabled selected>Select Region</option>';
   Object.keys(GEO_DATA).forEach(r => {
-    const o = document.createElement('option');
+    const o = document.createElement("option");
     o.value = r;
     o.textContent = r;
     regionEl.appendChild(o);
@@ -187,9 +201,8 @@ function populateDistricts() {
   if (!sel) { districtEl.disabled = true; return; }
   districtEl.disabled = false;
   Object.keys(GEO_DATA[sel]).forEach(d => {
-    const o = document.createElement('option');
-    o.value = d;
-    o.textContent = d;
+    const o = document.createElement("option");
+    o.value = d; o.textContent = d;
     districtEl.appendChild(o);
   });
 }
@@ -200,303 +213,154 @@ function populateUpazilas() {
   if (!selR || !selD) { upazilaEl.disabled = true; return; }
   upazilaEl.disabled = false;
   GEO_DATA[selR][selD].forEach(u => {
-    const o = document.createElement('option');
-    o.value = u;
-    o.textContent = u;
+    const o = document.createElement("option");
+    o.value = u; o.textContent = u;
     upazilaEl.appendChild(o);
   });
 }
+regionEl.addEventListener("change", populateDistricts);
+districtEl.addEventListener("change", populateUpazilas);
 
+/* ---------------- Cart + Coupon Logic ---------------- */
+function getCart() {
+  try {
+    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+  } catch { return []; }
+}
+cartItems = getCart();
 
-        // --- Totals & rendering ---
-        function calculateTotals() {
-            const productTotal = cartItems.reduce((s,i) => s + ((parseFloat(i.price)||0) * (parseInt(i.qty)||0)), 0);
-            const deliveryFee = DELIVERY_FEES;
-            // Limit discount (if you want max cap, you can enforce here). No stacking: currentDiscount already computed
-            const discount = Math.max(0, currentDiscount || 0);
-            const grandTotal = Math.max(0, productTotal + deliveryFee - discount);
-            return { productTotal, deliveryFee, discount, grandTotal };
-        }
-        function renderOrderSummary() {
-            if (!cartItems.length) {
-                cartSummaryBody.innerHTML = '<tr><td colspan="2" class="text-center text-red-500 italic p-4">Your cart is empty.</td></tr>';
-                priceSummaryFoot.innerHTML = '';
-                return;
-            }
-            cartSummaryBody.innerHTML = cartItems.map(i => {
-                const line = (parseFloat(i.price)||0) * (parseInt(i.qty)||0);
-                const details = i.name + (i.size ? ` (Size: ${i.size})` : '');
-                return `<tr><td>${details} <span class="text-gray-500 text-xs">x${i.qty}</span></td><td class="text-right">৳${line.toFixed(0)}</td></tr>`;
-            }).join('');
-            const totals = calculateTotals();
-            priceSummaryFoot.innerHTML = `
-                <tr><td class="text-gray-600 pt-3">Product Total</td><td class="text-right text-gray-600 pt-3">৳${totals.productTotal.toFixed(0)}</td></tr>
-                <tr><td class="text-gray-600">Delivery Fee</td><td class="text-right text-gray-600">৳${totals.deliveryFee.toFixed(0)}</td></tr>
-                <tr><td class="text-green-600">Discount (Coupon)</td><td class="text-right text-green-600">- ৳${totals.discount.toFixed(0)}</td></tr>
-                <tr class="total-row-summary"><td>Grand Total</td><td class="text-right">৳${totals.grandTotal.toFixed(0)}</td></tr>
-            `;
-        }
+async function loadCouponsFromFirestore() {
+  try {
+    const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
+    const snap = await getDoc(ref);
+    availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
+  } catch (err) {
+    console.error("Error loading coupons:", err);
+    availableCoupons = [];
+  }
+}
+function findMatchingCoupon(code) {
+  return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
+}
+function couponAppliesToCart(coupon, cart) {
+  if (!coupon) return false;
+  if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true;
+  return cart.some(i => coupon.allowedProducts.includes(i.sku));
+}
+function computeDiscount(coupon, total) {
+  if (!coupon) return 0;
+  return coupon.type === "percent"
+    ? Math.round(total * (coupon.amount / 100))
+    : coupon.amount;
+}
+function applyCouponClientSide(code) {
+  couponStatus.textContent = "";
+  const coupon = findMatchingCoupon(code);
+  if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
+  if (!couponAppliesToCart(coupon, cartItems))
+    return (couponStatus.textContent = "Coupon not valid for these items.");
+  const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
+  currentDiscount = computeDiscount(coupon, productTotal);
+  appliedCoupon = coupon;
+  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
+  showAlert("success", `Coupon ${coupon.code} applied!`);
+}
+applyCouponBtn.addEventListener("click", async () => {
+  applyCouponBtn.disabled = true;
+  applyCouponBtn.innerHTML =
+    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
+       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+     </svg> Applying...`;
+  await loadCouponsFromFirestore();
+  const code = couponInput.value.trim();
+  applyCouponClientSide(code);
+  setTimeout(() => {
+    applyCouponBtn.disabled = false;
+    applyCouponBtn.textContent = "Apply";
+  }, 1000);
+});
 
-        // --- Coupons: load from Firestore ---
-        async function loadCouponsFromFirestore() {
-            try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'WideFind';
-                const couponsRef = doc(db, `artifacts/${appId}/public/data/config/coupons`);
-                const snap = await getDoc(couponsRef);
-                availableCoupons = snap.exists() ? (snap.data().validCodes || []) : [];
-            } catch (err) {
-                console.error('Error loading coupons:', err);
-                availableCoupons = [];
-            }
-        }
+/* ---------------- Payment Switching ---------------- */
+document.querySelectorAll('.select-btn[data-method]').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    document.querySelectorAll('.select-btn[data-method]').forEach(b=>b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const method=e.currentTarget.getAttribute('data-method');
+    document.getElementById('payment-method').value=method;
+    const online=document.getElementById('online-payment-fields');
+    const show=method==="Online Payment";
+    online.classList.toggle('hidden',!show);
+    document.getElementById('sender-number').required=show;
+    document.getElementById('transaction-id').required=show;
+  });
+});
+document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b=>b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const ch=e.currentTarget.getAttribute('data-channel');
+    document.getElementById('payment-channel').value=ch;
+    showAlert("success",`💳 ${ch} selected for online payment`);
+  });
+});
 
-        // --- Coupon application logic (only one coupon allowed) ---
-        function findMatchingCoupon(code) {
-            if (!code) return null;
-            return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
-        }
+/* ---------------- Place Order ---------------- */
+document.getElementById("order-form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (!cartItems.length) return showAlert("error","Your cart is empty!");
 
-        function couponAppliesToCart(coupon, cart) {
-            if (!coupon) return false;
-            if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true; // applies to all
-            // coupon allowedProducts contains SKUs — check if cart has any matching allowed product
-            return cart.some(item => coupon.allowedProducts.includes(item.sku));
-        }
-
-        function computeDiscountForCoupon(coupon, productTotal) {
-            if (!coupon) return 0;
-            if (coupon.type === 'fixed') return Math.min(productTotal, coupon.amount);
-            if (coupon.type === 'percent') return Math.min(productTotal, Math.round(productTotal * (coupon.amount / 100)));
-            return 0;
-        }
-
-        // Apply coupon (user action)
-        function applyCouponClientSide(code) {
-            couponStatus.textContent = '';
-            const coupon = findMatchingCoupon(code);
-            if (!coupon) { currentDiscount = 0; appliedCoupon = null; couponStatus.textContent = 'Invalid or expired coupon.'; renderOrderSummary(); return; }
-            // If there's already an applied coupon and it's different, block stacking
-            if (appliedCoupon && appliedCoupon.code && appliedCoupon.code !== coupon.code) {
-                couponStatus.textContent = 'Only one coupon can be used per order.';
-                return;
-            }
-            // Check usage limit (0 = unlimited)
-            if (typeof coupon.usageLimit === 'number' && coupon.usageLimit === 0) {
-                // unlimited
-            } else if (typeof coupon.usageLimit === 'number' && coupon.usageLimit <= 0) {
-                couponStatus.textContent = 'This coupon has no remaining uses.';
-                return;
-            }
-
-            // Check allowed products
-            if (!couponAppliesToCart(coupon, cartItems)) {
-                couponStatus.textContent = 'This coupon is not valid for items in your cart.';
-                return;
-            }
-
-            // Passes all checks; compute discount
-            const productTotal = cartItems.reduce((s,i) => s + ((parseFloat(i.price)||0)*(parseInt(i.qty)||0)), 0);
-            const discount = computeDiscountForCoupon(coupon, productTotal);
-
-            appliedCoupon = coupon;
-            currentDiscount = discount;
-            couponStatus.textContent = `Coupon ${coupon.code} applied — you saved ৳${discount.toFixed(0)}.`;
-            renderOrderSummary();
-        }
-
-        // Decrement coupon usage (write to Firestore) — call after successful order
-        async function decrementCouponUsageInFirestore(code) {
-            if (!code) return;
-            try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'WideFind';
-                const couponsRef = doc(db, `artifacts/${appId}/public/data/config/coupons`);
-                const snap = await getDoc(couponsRef);
-                if (!snap.exists()) return;
-                const list = snap.data().validCodes || [];
-                const newList = list.map(c => {
-                    if (c.code && c.code.toUpperCase() === code.toUpperCase()) {
-                        // if unlimited (0) keep 0, else decrement but never below 0
-                        const ul = typeof c.usageLimit === 'number' ? c.usageLimit : 0;
-                        return { ...c, usageLimit: ul > 0 ? ul - 1 : 0 };
-                    }
-                    return c;
-                });
-                await setDoc(couponsRef, { validCodes: newList });
-            } catch (err) {
-                console.error('Error decrementing coupon usage:', err);
-            }
-        }
-
-        // --- Attach UI listeners ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            // prepare cart
-            if (!localStorage.getItem(CART_STORAGE_KEY)) {
-                const dummy = [
-                    { sku: 'TSHIRT-001', name: 'Classic T-Shirt', price: 1200, qty: 1, size: 'L' },
-                    { sku: 'WATCH-001', name: 'Smart Watch', price: 4999, qty: 1, size: '' }
-                ];
-                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(dummy));
-            }
-            cartItems = getCart();
-
-            populateRegions();
-            renderOrderSummary();
-            await loadCouponsFromFirestore(); // load coupons early
-
-            // geo listeners
-            regionEl.addEventListener('change', populateDistricts);
-            districtEl.addEventListener('change', populateUpazilas);
-
-            // payment method buttons
-            document.querySelectorAll('.select-btn[data-method]').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    document.querySelectorAll('.select-btn[data-method]').forEach(b => b.classList.remove('active'));
-                    e.currentTarget.classList.add('active');
-                    currentPaymentMethod = e.currentTarget.getAttribute('data-method');
-                    document.getElementById('payment-method').value = currentPaymentMethod;
-                    document.getElementById('online-payment-fields').classList.toggle('hidden', currentPaymentMethod !== 'Online Payment');
-                    document.getElementById('sender-number').required = (currentPaymentMethod === 'Online Payment');
-                    document.getElementById('transaction-id').required = (currentPaymentMethod === 'Online Payment');
-                });
-            });
-
-            // online channel buttons
-            document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b=>b.classList.remove('active'));
-                    e.currentTarget.classList.add('active');
-                    document.getElementById('payment-channel').value = e.currentTarget.getAttribute('data-channel');
-                });
-            });
-
-            // coupon apply button
-            applyCouponBtn.addEventListener('click', async () => {
-                // reload coupons before applying to get latest usage limit info
-                await loadCouponsFromFirestore();
-                const code = couponInput.value.trim();
-                applyCouponClientSide(code);
-            });
-
-            // place order handler
-            document.getElementById('order-form').addEventListener('submit', async (ev) => {
-                ev.preventDefault();
-                if (!cartItems.length) { alert('Your cart is empty.'); return; }
-                if (!regionEl.value || !districtEl.value || !upazilaEl.value) { alert('Please select region/district/upazila.'); return; }
-
-                // check for items that require online payment
-                const PRODUCT_DB = {
-                    'TSHIRT-001': { name: "Classic T-Shirt", price: 1200, isOnlinePaymentRequired: false },
-                    'SUNGLASS-001': { name: "Aviator Sunglass", price: 999, isOnlinePaymentRequired: false },
-                    'WATCH-001': { name: "Smart Watch", price: 4999, isOnlinePaymentRequired: false },
-                    'EARBUD-002': { name: "Wireless Earbuds", price: 3500, isOnlinePaymentRequired: false },
-                    'MUG-003': { name: "Ceramic Mug", price: 450, isOnlinePaymentRequired: false },
-                };
-                const onlineRequired = cartItems.some(item => PRODUCT_DB[item.sku]?.isOnlinePaymentRequired);
-                if (onlineRequired && currentPaymentMethod !== 'Online Payment') {
-                    alert('A required item must be paid online. Please choose Online Payment.');
-                    return;
-                }
-
-                // Re-validate coupon usage-limit right before placing order
-                if (appliedCoupon) {
-                    await loadCouponsFromFirestore();
-                    const fresh = findMatchingCoupon(appliedCoupon.code);
-                    if (!fresh) { alert('Applied coupon no longer valid.'); appliedCoupon = null; currentDiscount = 0; renderOrderSummary(); return; }
-                    if (!(typeof fresh.usageLimit === 'number' && fresh.usageLimit === 0) && fresh.usageLimit <= 0) {
-                        alert('Applied coupon has no remaining uses.'); appliedCoupon = null; currentDiscount = 0; renderOrderSummary(); return;
-                    }
-                    // ensure it still applies to cart
-                    if (!couponAppliesToCart(fresh, cartItems)) {
-                        alert('Applied coupon is not applicable to items in your cart.'); appliedCoupon=null; currentDiscount=0; renderOrderSummary(); return;
-                    }
-                    // recompute discount from freshest coupon data
-                    const productTotal = cartItems.reduce((s,i)=>s+((parseFloat(i.price)||0)*(parseInt(i.qty)||0)),0);
-                    currentDiscount = computeDiscountForCoupon(fresh, productTotal);
-                    appliedCoupon = fresh;
-                    renderOrderSummary();
-                }
-
-                // process "order" (simulated here)
-                placeOrderBtn.disabled = true;
-                placeOrderBtn.textContent = 'Processing...';
-                try {
-                    // simulate order creation: in real app you would send order data to server / Firestore orders collection
-                    const orderId = 'WF' + Date.now();
-                    
-                    
-                      // --- also send order to Google Sheets ---
-  const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec"; // <-- replace with your real deployment URL
+  const orderId = "WF" + Date.now();
   const order = {
-    orderId: orderId,
-    name: document.getElementById('name').value,
-    phone: document.getElementById('phone').value,
+    orderId,
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
     region: regionEl.value,
     district: districtEl.value,
     upazila: upazilaEl.value,
-    address: document.getElementById('address').value,
-    paymentMethod: document.querySelector('input[name="payment"]:checked')?.value || '',
-    transactionId: document.getElementById('txn-id')?.value || '',
-    cartItems: JSON.stringify(cartItems),
+    address: document.getElementById("address").value,
+    paymentMethod: document.getElementById("payment-method").value,
+    paymentChannel: document.getElementById("payment-channel").value,
+    senderNumber: document.getElementById("sender-number").value,
+    transactionId: document.getElementById("transaction-id").value,
+    cartItems,
+    discount: currentDiscount,
+    timestamp: new Date().toISOString(),
   };
-  
-  
-  // ✅ Send order to Google Sheets
-try {
-  await fetch(scriptURL, {
-    method: "POST",
-    body: JSON.stringify(order),
-    headers: { "Content-Type": "application/json" }
-  });
-  console.log("✅ Order sent to Google Sheets");
-} catch (err) {
-  console.error("❌ Failed to send to Google Sheets", err);
-}
 
-                    
-                    // If coupon applied and has usageLimit > 0, decrement in Firestore
-                    if (appliedCoupon && typeof appliedCoupon.usageLimit === 'number' && appliedCoupon.usageLimit > 0) {
-                        await decrementCouponUsageInFirestore(appliedCoupon.code);
-                    }
-                    // Clear cart
-                    localStorage.removeItem(CART_STORAGE_KEY);
-                    alert(`Order Placed Successfully! Order ID: ${orderId}`);
-                    window.location.href = SUCCESS_REDIRECT_URL;
-                } catch (err) {
-                    console.error(err);
-                    alert('Error placing order: ' + (err.message || err));
-                } finally {
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Place Order';
-                }
-            });
+  placeOrderBtn.disabled = true;
+  placeOrderBtn.textContent = "Processing...";
 
-            document.getElementById('cancel-order-btn').addEventListener('click', () => {
-                if (confirm('Cancel and go back to cart?')) window.location.href = 'cart.html';
-            });
+  // send to Google Sheet
+  const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
+  try {
+    await fetch(scriptURL,{method:"POST",body:JSON.stringify(order),headers:{"Content-Type":"application/json"}});
+  } catch(e){ console.error("Sheet send failed",e); }
 
-            renderOrderSummary();
-        });
-        
-        
-        // Add button click animation (safe to put at bottom)
-const applyBtn = document.getElementById("apply-coupon-btn");
+  // save to Firestore
+  try {
+    await setDoc(doc(db,"orders",orderId),order);
+    localStorage.removeItem(CART_STORAGE_KEY);
+    showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
+    setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
+  } catch(err){
+    console.error(err);
+    showAlert("error","❌ Failed to save order!");
+  } finally {
+    placeOrderBtn.disabled=false;
+    placeOrderBtn.textContent="Place Order";
+  }
+});
 
-if (applyBtn) {
-  applyBtn.addEventListener("click", () => {
-    // Add loading animation for visual feedback
-    applyBtn.classList.add("loading");
+/* ---------------- Cancel Order ---------------- */
+cancelOrderBtn.addEventListener("click",()=>{
+  if(confirm("Are you sure you want to cancel this order?")){
+    showAlert("error","❌ Order cancelled — returning to cart...");
+    setTimeout(()=>window.location.href="cart.html",1500);
+  }
+});
+</script>
 
-    // Remove animation after 1.5 seconds
-    setTimeout(() => applyBtn.classList.remove("loading"), 1500);
 
-    // If your page already has a function named applyCoupon(),
-    // call it here to run your existing coupon logic.
-    if (typeof applyCoupon === "function") {
-      applyCoupon();
-    }
-  });
-}
-
-    </script>
 </body>
 </html>
