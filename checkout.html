@@ -144,6 +144,7 @@ const couponStatus = document.getElementById("coupon-status");
 const placeOrderBtn = document.getElementById("place-order-btn");
 const cancelOrderBtn = document.getElementById("cancel-order-btn");
 
+// --- Global Data Holders ---
 let GEO_DATA = {};
 let cartItems = [];
 let availableCoupons = [];
@@ -282,11 +283,10 @@ applyCouponBtn.addEventListener("click", async () => {
 });
 
 
-applyCouponBtn.addEventListener("click", async () => {
-  ...
-});   // 👈 after this closing curly brace
 
 /* ---------------- Dynamic Totals & Summary ---------------- */
+
+// base delivery fees by region (you can adjust values)
 const DELIVERY_FEES_BY_REGION = {
   Dhaka: 80,
   Chattogram: 100,
@@ -298,11 +298,13 @@ const DELIVERY_FEES_BY_REGION = {
   Mymensingh: 120,
 };
 
+// get delivery fee based on selected region
 function getDeliveryFee() {
   const region = regionEl.value;
-  return DELIVERY_FEES_BY_REGION[region] || 80;
+  return DELIVERY_FEES_BY_REGION[region] || 80; // default 80
 }
 
+// compute all totals
 function calculateTotals() {
   const productTotal = cartItems.reduce(
     (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
@@ -314,6 +316,7 @@ function calculateTotals() {
   return { productTotal, deliveryFee, discount, grandTotal };
 }
 
+// render summary table
 function renderOrderSummary() {
   if (!cartItems.length) {
     cartSummaryBody.innerHTML =
@@ -334,6 +337,7 @@ function renderOrderSummary() {
 
   const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
 
+  // ✅ Includes Pathao courier service notice
   priceSummaryFoot.innerHTML = `
     <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
     <tr>
@@ -355,8 +359,10 @@ regionEl.addEventListener("change", renderOrderSummary);
 districtEl.addEventListener("change", renderOrderSummary);
 upazilaEl.addEventListener("change", renderOrderSummary);
 couponInput.addEventListener("input", () => {
+  // reset displayed coupon message when user edits
   couponStatus.textContent = "";
 });
+
 
 
 /* ---------------- Payment Switching ---------------- */
