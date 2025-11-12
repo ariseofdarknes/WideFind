@@ -143,6 +143,8 @@ const couponInput = document.getElementById("coupon-code");
 const couponStatus = document.getElementById("coupon-status");
 const placeOrderBtn = document.getElementById("place-order-btn");
 const cancelOrderBtn = document.getElementById("cancel-order-btn");
+const cartSummaryBody = document.getElementById("cart-summary-body");
+const priceSummaryFoot = document.getElementById("price-summary-foot");
 
 // --- Global Data Holders ---
 let GEO_DATA = {};
@@ -228,18 +230,20 @@ function getCart() {
     return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
   } catch { return []; }
 }
-cartItems = getCart();
+
 
 async function loadCouponsFromFirestore() {
   try {
     const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
     const snap = await getDoc(ref);
     availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
+    console.log("✅ Coupons loaded:", availableCoupons);
   } catch (err) {
     console.error("Error loading coupons:", err);
     availableCoupons = [];
   }
 }
+
 function findMatchingCoupon(code) {
   return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
 }
@@ -281,6 +285,45 @@ applyCouponBtn.addEventListener("click", async () => {
     applyCouponBtn.textContent = "Apply";
   }, 1000);
 });
+
+
+
+
+/* ---------------- Initialize checkout ---------------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load cart from localStorage
+  cartItems = getCart();
+  console.log("DEBUG: checkout cartItems:", cartItems);
+
+  // If cart is empty, inform user and redirect back to cart page
+  if (!cartItems.length) {
+    showAlert("error", "🛒 Your cart is empty — you will be returned to Cart.");
+    setTimeout(() => (window.location.href = "cart.html"), 1800);
+    return;
+  }
+
+  // Ensure geo data is available before populating regions
+  if (Object.keys(GEO_DATA).length) {
+    populateRegions();
+  } else {
+    try {
+      const res = await fetch("geo_data.json");
+      GEO_DATA = await res.json();
+      populateRegions();
+    } catch (err) {
+      console.error("Geo data failed:", err);
+      showAlert("error", "⚠️ Could not load delivery regions.");
+    }
+  }
+
+  // Render the order summary now that cartItems is ready
+  renderOrderSummary();
+
+  // Load coupons (background)
+  await loadCouponsFromFirestore();
+});
+
+
 
 
 
@@ -379,6 +422,7 @@ document.querySelectorAll('.select-btn[data-method]').forEach(btn=>{
     document.getElementById('transaction-id').required=show;
   });
 });
+
 document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn=>{
   btn.addEventListener('click',e=>{
     document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b=>b.classList.remove('active'));
