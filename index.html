@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WideFind - Find Everything You Need</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <h1><a href="index.html" style="text-decoration: none; color: #ff6600;">WideFind</a></h1>
+        </div>
+    </header>
+    
+    <div class="ads-banner-container">
+        <div class="ads-slider">
+            <div class="banner-slide active" style="background-image: url('https://images.pexels.com/photos/157757/hand-watch-time-clock-157757.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=1200');">
+                <div class="container banner-text-overlay">
+                    <p>🔥 **Limited Time Offer:** Get 30% OFF on all Watches! Shop Now! 🔥</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="category-menu-wrapper">
+        <div class="container">
+            <div class="category-menu-slider">
+                <a href="#" class="category-item active" data-category="popular">Popular</a>
+                <a href="#" class="category-item" data-category="T-Shirt">T-Shirt</a>
+                <a href="#" class="category-item" data-category="Sunglass">Sunglass</a>
+                <a href="#" class="category-item" data-category="Watch">Watch</a>
+                <a href="#" class="category-item" data-category="Men's Fashion">Men's Fashion</a>
+                <a href="#" class="category-item" data-category="Women's Fashion">Women's Fashion</a>
+                <a href="#" class="category-item" data-category="Electronics">Electronics</a>
+                <a href="#" class="category-item" data-category="Home Goods">Home Goods</a>
+                <a href="#" class="category-item" data-category="Accessories">Accessories</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h2 id="product-section-title">Popular Products</h2>
+        <div class="product-grid" id="product-list-container"></div>
+    </main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+
+// ✅ Add the helper function right here, before Firebase code
+function getValidImageURL(url) {
+  if (!url) return "images/placeholder.png"; // fallback
+
+  if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+    const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+    if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+  }
+
+  return url;
+}
+
+
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+      authDomain: "my-ecom-site-168ab.firebaseapp.com",
+      projectId: "my-ecom-site-168ab",
+      storageBucket: "my-ecom-site-168ab.appspot.com",
+      messagingSenderId: "995581566071",
+      appId: "1:995581566071:web:1640d0236302d369aefa72",
+      measurementId: "G-NLHKNBHCFN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const appId = "WideFind";
+
+    async function loadProducts(category = "popular") {
+        const container = document.getElementById('product-list-container');
+        const title = document.getElementById('product-section-title');
+        container.innerHTML = "";
+
+        const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
+        const snapshot = await getDocs(productsRef);
+
+        let products = [];
+        snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+
+        if (category === "popular") {
+            products = products.filter(p => p.isPopular === true);
+            title.textContent = "Popular Products";
+        } else {
+            products = products.filter(p => p.category === category);
+            title.textContent = `${category} Collection`;
+        }
+
+        if (products.length === 0) {
+            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:20px;">No products found.</p>`;
+            return;
+        }
+
+        products.forEach(product => {
+            // compute discount percent for display (do not change product.price)
+            let displayPercent = 0;
+            if (product.discountPercent && Number(product.discountPercent) > 0) {
+                displayPercent = Math.round(Number(product.discountPercent));
+            } else if (product.discountAmount && Number(product.originalPrice) > 0) {
+                displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
+            }
+
+            const card = document.createElement("div");
+            card.classList.add("product-card");
+            card.innerHTML = `
+            
+           <img src="${getValidImageURL((product.images && product.images[0]) ? product.images[0] : '') || 'https://placehold.co/400x300?text=No+Image'}"
+
+                <h3 title="${product.name || ''}">${product.name || ''}</h3>
+                <div class="price-container">
+                    <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
+                    ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+                    ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+                </div>
+                <a href="product.html?id=${product.id}" class="btn-buy">View Details</a>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadProducts("popular");
+
+        document.querySelectorAll(".category-item").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                document.querySelectorAll(".category-item").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                loadProducts(btn.dataset.category);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Product Details</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="container">
+        <a href="index.html" class="logo">WideFind</a>
+        <a href="cart.html" id="cart-link" style="float:right">🛒 Cart</a>
+    </div>
+</header>
+
+<main class="product-page container">
+
+    <!-- ✅ Updated gallery for multiple images -->
+    <div class="product-gallery">
+        <div class="main-image-container">
+            <img id="product-image" src="https://placehold.co/600x600?text=Loading..." alt="Product Image">
+        </div>
+        <div id="thumbnail-list" class="thumbnail-list"></div>
+    </div>
+
+    <div class="product-details">
+        <h2 id="product-name">Loading...</h2>
+
+        <div class="product-price-ref">
+            <span class="sale-price" id="product-price">৳0</span>
+            <span class="original-price" id="product-original" style="display:none;">৳0</span>
+            <span class="discount-percent" id="product-discount" style="display:none;">-0%</span>
+        </div>
+
+        <p id="product-description"></p>
+
+        <h4 id="size-label">Available Sizes</h4>
+        <div id="size-options" class="size-container"></div>
+
+        <div class="quantity-selector">
+            <label>Quantity</label>
+            <input id="qty-input" type="number" min="1" value="1">
+        </div>
+
+        <button id="add-to-cart" class="btn-buy">Add to Cart</button>
+    </div>
+
+</main>
+
+<footer class="site-footer">
+    <p>© 2025 WideFind. All Rights Reserved.</p>
+</footer>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ✅ Helper function for image URLs
+function getValidImageURL(url) {
+  if (!url) return "images/placeholder.png";
+  if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+    const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+    if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+  }
+  return url;
+}
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+  authDomain: "my-ecom-site-168ab.firebaseapp.com",
+  projectId: "my-ecom-site-168ab",
+  storageBucket: "my-ecom-site-168ab.appspot.com",
+  messagingSenderId: "995581566071",
+  appId: "1:995581566071:web:1640d0236302d369aefa72",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const appId = "WideFind";
+const CART_STORAGE_KEY = 'widefindCart';
+
+function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]"); }
+    catch(e){ console.error(e); return []; }
+}
+function saveCart(cart){ localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart)); }
+
+function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+const productId = getQueryParam('id') || getQueryParam('sku');
+if (!productId) {
+    document.getElementById('product-name').innerText = 'Product not specified';
+} else {
+    loadProduct(productId);
+}
+
+async function loadProduct(productId) {
+    try {
+        const ref = doc(db, `artifacts/${appId}/public/data/products/${productId}`);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+            document.getElementById('product-name').innerText = 'Product not found';
+            return;
+        }
+        const p = snap.data();
+
+        // ✅ Handle case where images are stored as comma-separated string
+        if (typeof p.images === "string") {
+            p.images = p.images.split(',').map(i => i.trim()).filter(i => i);
+        }
+
+        // ✅ Multiple image gallery setup
+        const mainImg = document.getElementById("product-image");
+        const thumbList = document.getElementById("thumbnail-list");
+        thumbList.innerHTML = '';
+
+        if (p.images && p.images.length > 0) {
+            mainImg.src = getValidImageURL(p.images[0]);
+            p.images.forEach((url, index) => {
+                const thumb = document.createElement('img');
+                thumb.src = getValidImageURL(url);
+                if (index === 0) thumb.classList.add('active');
+                thumb.addEventListener('click', () => {
+                    document.querySelectorAll('.thumbnail-list img').forEach(img => img.classList.remove('active'));
+                    thumb.classList.add('active');
+                    mainImg.src = getValidImageURL(url);
+                });
+                thumbList.appendChild(thumb);
+            });
+        } else {
+            mainImg.src = 'https://placehold.co/600x600?text=No+Image';
+        }
+
+        document.getElementById("product-name").innerText = p.name || '';
+        document.getElementById("product-description").innerText = p.description || '';
+        document.getElementById("product-price").innerText = `৳${Number(p.price || 0).toFixed(0)}`;
+
+        if (p.originalPrice) {
+            document.getElementById("product-original").style.display = 'inline-block';
+            document.getElementById("product-original").innerText = `৳${Number(p.originalPrice).toFixed(0)}`;
+        } else {
+            document.getElementById("product-original").style.display = 'none';
+        }
+
+        // ✅ Discount display
+        let displayPercent = 0;
+        if (p.discountPercent && Number(p.discountPercent) > 0) displayPercent = Math.round(Number(p.discountPercent));
+        else if (p.discountAmount && p.originalPrice && Number(p.originalPrice) > 0)
+            displayPercent = Math.round((Number(p.discountAmount) / Number(p.originalPrice)) * 100);
+
+        if (displayPercent > 0) {
+            const dEl = document.getElementById('product-discount');
+            dEl.style.display = 'inline-block';
+            dEl.innerText = `-${displayPercent}%`;
+        } else {
+            document.getElementById('product-discount').style.display = 'none';
+        }
+
+        // ✅ Size options
+        const sizes = p.sizes || [];
+        const sizeOptions = document.getElementById('size-options');
+        sizeOptions.innerHTML = '';
+        if (sizes.length) {
+            const select = document.createElement('select');
+            select.id = 'size-select';
+            sizes.forEach(s => {
+                const o = document.createElement('option'); o.value = s; o.textContent = s;
+                select.appendChild(o);
+            });
+            sizeOptions.appendChild(select);
+        } else {
+            sizeOptions.innerHTML = '<small class="text-gray-500">No size selection</small>';
+        }
+
+        // ✅ Add to cart
+        document.getElementById('add-to-cart').addEventListener('click', () => {
+            const qty = Math.max(1, parseInt(document.getElementById('qty-input').value || 1));
+            const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
+            addToCart({
+                sku: p.sku || productId,
+                itemId: String(Date.now()) + '-' + Math.floor(Math.random()*9999),
+                name: p.name || '',
+                price: Number(p.price || 0),
+                qty,
+                size: sizeVal,
+                image: (p.images && p.images[0]) ? p.images[0] : ''
+            });
+            alert('Added to cart');
+            updateCartLinkCount();
+        });
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById('product-name').innerText = 'Failed to load product';
+    }
+}
+
+function addToCart(item) {
+    const cart = getCart();
+    const existing = cart.find(ci => ci.sku === item.sku && (ci.size || '') === (item.size || ''));
+    if (existing) {
+        existing.qty = (existing.qty || 0) + item.qty;
+    } else {
+        cart.push(item);
+    }
+    saveCart(cart);
+}
+
+function updateCartLinkCount(){
+    const cart = getCart();
+    const count = cart.reduce((s,i)=>s + (Number(i.qty)||0), 0);
+    const el = document.getElementById('cart-link');
+    if (el) el.innerText = `🛒 Cart (${count})`;
+}
+
+document.addEventListener('DOMContentLoaded', () => updateCartLinkCount());
+</script>
+
+</body>
+</html>

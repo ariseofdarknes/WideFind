@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Shopping Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1><a href="index.html" style="text-decoration: none; color: #ff6600;">WideFind</a></h1>
+            <a href="index.html" style="font-weight: 600; color: #555; text-decoration: none;">← Continue Shopping</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="cart-page-container">
+            <h2>Your Shopping Cart (<span id="cart-item-count">0</span> Items)</h2>
+            <div id="cart-items-list"></div>
+            
+            <div id="cart-empty-message" style="text-align: center; padding: 50px; color: #999; display: none;">
+                Your cart is empty! <a href="index.html">Start shopping now.</a>
+            </div>
+
+            <div class="cart-actions">
+                <div class="cart-total">
+                    Subtotal: <span id="cart-subtotal">৳0</span>
+                </div>
+                <a href="checkout.html" id="proceed-to-checkout" class="btn-buy" style="width: 250px; margin: 0;">PROCEED TO CHECKOUT</a>
+            </div>
+        </div>
+    </main>
+
+<script>
+    const CART_STORAGE_KEY = 'widefindCart';
+
+
+function getValidImageURL(url) {
+    if (!url) return "images/placeholder.png"; // fallback if empty
+    if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+        const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+        if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+    }
+    return url;
+}
+
+    // PRODUCT_DB here is used only to surface an image if item doesn't have one.
+    const PRODUCT_DB = {
+        'TSHIRT-001': { name: "Classic T-Shirt 1", images: ["https://picsum.photos/id/1/600/600"] },
+        'SUNGLASS-001': { name: "Aviator Sunglass 1", images: ["https://picsum.photos/id/4/600/600"] },
+        'WATCH-001': { name: "Smart Watch 1", images: ["https://picsum.photos/id/7/600/600"] },
+        'EARBUD-002': { name: "Wireless Earbuds 1", images: ["https://picsum.photos/id/11/600/600"] },
+        'MUG-003': { name: "Ceramic Mug 1", images: ["https://picsum.photos/id/21/600/600"] },
+        'TSHIRT-002': { name: "Graphic T-Shirt 2", images: ["https://picsum.photos/id/51/600/600"] }
+        // Add more if you want
+    };
+
+    function getCart() {
+        try {
+            const cartString = localStorage.getItem(CART_STORAGE_KEY);
+            return cartString ? JSON.parse(cartString) : [];
+        } catch (e) {
+            console.error("Error reading cart from localStorage:", e);
+            return [];
+        }
+    }
+
+    function saveCart(cart) {
+        try {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            renderCart();
+        } catch (e) {
+            console.error("Error saving cart to localStorage:", e);
+        }
+    }
+    
+    function removeItem(itemId) {
+        let cart = getCart();
+        cart = cart.filter(item => item.itemId !== itemId);
+        saveCart(cart);
+    }
+
+    function renderCart() {
+        const cart = getCart();
+        const listContainer = document.getElementById('cart-items-list');
+        const countDisplay = document.getElementById('cart-item-count');
+        const subtotalDisplay = document.getElementById('cart-subtotal');
+        const emptyMessage = document.getElementById('cart-empty-message');
+        const actions = document.querySelector('.cart-actions');
+        
+        listContainer.innerHTML = '';
+        
+        if (cart.length === 0) {
+            countDisplay.textContent = '0';
+            subtotalDisplay.textContent = '৳0';
+            emptyMessage.style.display = 'block';
+            if (actions) actions.style.display = 'none';
+            return;
+        }
+
+        emptyMessage.style.display = 'none';
+        if (actions) actions.style.display = 'flex';
+
+        let totalSubtotal = 0;
+        let totalQty = 0;
+
+        cart.forEach(item => {
+            const product = PRODUCT_DB[item.sku] || {};
+            
+          const image = getValidImageURL(
+  item.image || (product.images && product.images[0]) || 'https://placehold.co/120x120?text=No+Image'
+);
+
+            const itemSubtotal = (Number(item.price) || 0) * (Number(item.qty) || 0); // USE item.price (sale price)
+            totalSubtotal += itemSubtotal;
+            totalQty += Number(item.qty) || 0;
+            
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('cart-item');
+            
+            itemElement.innerHTML = `
+                <img src="${image}" alt="${item.name}">
+                <div class="item-details">
+                    <h4>${item.name}</h4>
+                    <p>Qty: ${item.qty} | Unit Price: ৳${Number(item.price||0).toFixed(0)}</p>
+                    ${item.size ? `<p>Size: ${item.size}</p>` : ''}
+                </div>
+                <div class="item-price">
+                    ৳${itemSubtotal.toFixed(0)}
+                </div>
+                <div class="item-remove">
+                    <button data-item-id="${item.itemId}" title="Remove Item">✕</button>
+                </div>
+            `;
+            listContainer.appendChild(itemElement);
+        });
+
+        countDisplay.textContent = totalQty;
+        subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
+        
+        listContainer.querySelectorAll('.item-remove button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const itemId = e.target.getAttribute('data-item-id');
+                removeItem(itemId);
+            });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderCart();
+    });
+</script>
+
+</body>
+</html>
