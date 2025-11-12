@@ -281,6 +281,84 @@ applyCouponBtn.addEventListener("click", async () => {
   }, 1000);
 });
 
+
+applyCouponBtn.addEventListener("click", async () => {
+  ...
+});   // 👈 after this closing curly brace
+
+/* ---------------- Dynamic Totals & Summary ---------------- */
+const DELIVERY_FEES_BY_REGION = {
+  Dhaka: 80,
+  Chattogram: 100,
+  Rajshahi: 120,
+  Khulna: 120,
+  Sylhet: 110,
+  Rangpur: 130,
+  Barishal: 130,
+  Mymensingh: 120,
+};
+
+function getDeliveryFee() {
+  const region = regionEl.value;
+  return DELIVERY_FEES_BY_REGION[region] || 80;
+}
+
+function calculateTotals() {
+  const productTotal = cartItems.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+    0
+  );
+  const deliveryFee = getDeliveryFee();
+  const discount = currentDiscount || 0;
+  const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
+  return { productTotal, deliveryFee, discount, grandTotal };
+}
+
+function renderOrderSummary() {
+  if (!cartItems.length) {
+    cartSummaryBody.innerHTML =
+      '<tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is empty.</td></tr>';
+    priceSummaryFoot.innerHTML = "";
+    return;
+  }
+
+  cartSummaryBody.innerHTML = cartItems
+    .map(
+      (i) => `
+      <tr>
+        <td>${i.name} <span class="text-xs text-gray-500">x${i.qty}</span></td>
+        <td class="text-right">৳${(i.price * i.qty).toFixed(0)}</td>
+      </tr>`
+    )
+    .join("");
+
+  const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
+
+  priceSummaryFoot.innerHTML = `
+    <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
+    <tr>
+      <td class="text-gray-600">Delivery Fee</td>
+      <td class="text-right text-gray-600">৳${deliveryFee.toFixed(0)}</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="text-xs text-gray-500 italic pb-2">
+        ⚠️ Delivery charge is set by <b>Pathao Courier Service</b>. We are not responsible for this fee.
+      </td>
+    </tr>
+    <tr><td class="text-green-600">Discount</td><td class="text-right text-green-600">-৳${discount.toFixed(0)}</td></tr>
+    <tr class="total-row-summary"><td>Grand Total</td><td class="text-right font-bold text-orange-600">৳${grandTotal.toFixed(0)}</td></tr>
+  `;
+}
+
+/* --- Update totals whenever region or coupon changes --- */
+regionEl.addEventListener("change", renderOrderSummary);
+districtEl.addEventListener("change", renderOrderSummary);
+upazilaEl.addEventListener("change", renderOrderSummary);
+couponInput.addEventListener("input", () => {
+  couponStatus.textContent = "";
+});
+
+
 /* ---------------- Payment Switching ---------------- */
 document.querySelectorAll('.select-btn[data-method]').forEach(btn=>{
   btn.addEventListener('click',e=>{
