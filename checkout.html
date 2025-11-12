@@ -277,9 +277,19 @@ applyCouponBtn.addEventListener("click", async () => {
        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
        <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
      </svg> Applying...`;
+
+  // Refresh coupons from Firestore (in case admin changed them)
   await loadCouponsFromFirestore();
+
   const code = couponInput.value.trim();
+
+  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
   applyCouponClientSide(code);
+
+  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
+  renderOrderSummary();
+
+  // Enable button again after short delay to keep UX smooth
   setTimeout(() => {
     applyCouponBtn.disabled = false;
     applyCouponBtn.textContent = "Apply";
