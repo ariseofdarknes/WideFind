@@ -476,19 +476,42 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
   } catch(e){ console.error("Sheet send failed",e); }
 
   // save to Firestore
-  try {
-    await setDoc(doc(db,"orders",orderId),order);
-    localStorage.removeItem(CART_STORAGE_KEY);
-    showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
-    setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
-  } catch(err){
-    console.error(err);
-    showAlert("error","❌ Failed to save order!");
-  } finally {
-    placeOrderBtn.disabled=false;
-    placeOrderBtn.textContent="Place Order";
+  // save to Firestore
+try {
+  await setDoc(doc(db,"orders",orderId),order);
+
+  // ✅ If a coupon was applied and has a usageLimit > 0, decrement it
+  if (appliedCoupon && appliedCoupon.code) {
+    try {
+      const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
+      const snap = await getDoc(couponRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        const updatedCodes = (data.validCodes || []).map(c => {
+          if (c.code === appliedCoupon.code && c.usageLimit > 0) {
+            return { ...c, usageLimit: c.usageLimit - 1 };
+          }
+          return c;
+        });
+        await setDoc(couponRef, { ...data, validCodes: updatedCodes });
+        console.log(`✅ Coupon ${appliedCoupon.code} usage decremented.`);
+      }
+    } catch (err) {
+      console.error("❌ Failed to decrement coupon usage:", err);
+    }
   }
-});
+
+  localStorage.removeItem(CART_STORAGE_KEY);
+  showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
+  setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
+} catch(err){
+  console.error(err);
+  showAlert("error","❌ Failed to save order!");
+} finally {
+  placeOrderBtn.disabled=false;
+  placeOrderBtn.textContent="Place Order";
+}
+
 
 /* ---------------- Cancel Order ---------------- */
 cancelOrderBtn.addEventListener("click",()=>{
