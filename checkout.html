@@ -535,19 +535,21 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
     // Save the main order document
     await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
     
-    // Correct Coupon Usage Tracking Logic
+   // Correct Coupon Usage Tracking Logic (FIXED FOR CASE-INSENSITIVITY)
     if (appliedCoupon && appliedCoupon.code) {
         try {
             const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
             const snap = await getDoc(couponRef);
             if (snap.exists()) {
                 const data = snap.data();
+                const couponCodeUpper = appliedCoupon.code.toUpperCase(); // Get the applied code in uppercase
+                
                 const updatedCodes = (data.validCodes || []).map(c => {
-                    const totalLimit = c.usageLimit || 0;
-                    const usedCount = c.used || 0;
+                    const totalLimit = Number(c.usageLimit) || 0; // Ensure limit is a number
+                    const usedCount = Number(c.used) || 0; // Ensure used count is a number
                     
-                    if (c.code === appliedCoupon.code && totalLimit > 0 && totalLimit > usedCount) {
-                        // This is the single, correct place to increment the used count
+                    // Check against the uppercase version of the database code
+                    if (c.code.toUpperCase() === couponCodeUpper && totalLimit > 0 && totalLimit > usedCount) {
                         return { ...c, used: usedCount + 1 };
                     }
                     return c;
