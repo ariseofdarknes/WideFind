@@ -477,7 +477,7 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
 
   // save to Firestore
   try {
-    await setDoc(doc(db,"orders",orderId),order);
+    await setDoc(doc(db,"artifacts/WideFind/public/data/orders",orderId),order);
     
     // ✅ Decrement coupon usage if applied
 if (appliedCoupon && appliedCoupon.code) {
@@ -527,3 +527,4 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
