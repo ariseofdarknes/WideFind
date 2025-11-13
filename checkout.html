@@ -114,18 +114,18 @@
     
     
     
-   <script type="module">
+ <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 /* ---------------- Firebase Setup ---------------- */
 const firebaseConfig = {
-  apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-  authDomain: "my-ecom-site-168ab.firebaseapp.com",
-  projectId: "my-ecom-site-168ab",
-  storageBucket: "my-ecom-site-168ab.firebasestorage.app",
-  messagingSenderId: "995581566071",
-  appId: "1:995581566071:web:1640d0236302d369aefa72",
+  apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+  authDomain: "my-ecom-site-168ab.firebaseapp.com",
+  projectId: "my-ecom-site-168ab",
+  storageBucket: "my-ecom-site-168ab.firebasestorage.app",
+  messagingSenderId: "995581566071",
+  appId: "1:995581566071:web:1640d0236302d369aefa72",
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -155,145 +155,163 @@ let currentDiscount = 0;
 
 /* ---------------- HQ Animated Alert ---------------- */
 function showAlert(type, msg) {
-  const box = document.createElement("div");
-  box.className =
-    "fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl text-white font-semibold shadow-xl backdrop-blur-md transition-all duration-500 transform scale-95 opacity-0";
-  box.innerHTML =
-    type === "success"
-      ? `<svg class='w-6 h-6 text-white animate-bounce' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/></svg><span>${msg}</span>`
-      : `<svg class='w-6 h-6 text-white animate-pulse' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/></svg><span>${msg}</span>`;
-  box.style.background =
-    type === "success"
-      ? "linear-gradient(90deg,#10B981,#34D399)"
-      : "linear-gradient(90deg,#EF4444,#F87171)";
-  document.body.appendChild(box);
-  setTimeout(() => {
-    box.style.opacity = "1";
-    box.style.transform = "scale(1)";
-  }, 50);
-  setTimeout(() => {
-    box.style.opacity = "0";
-    box.style.transform = "scale(0.95)";
-    setTimeout(() => box.remove(), 400);
-  }, 3000);
+  const box = document.createElement("div");
+  box.className =
+    "fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl text-white font-semibold shadow-xl backdrop-blur-md transition-all duration-500 transform scale-95 opacity-0";
+  box.innerHTML =
+    type === "success"
+      ? `<svg class='w-6 h-6 text-white animate-bounce' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/></svg><span>${msg}</span>`
+      : `<svg class='w-6 h-6 text-white animate-pulse' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/></svg><span>${msg}</span>`;
+  box.style.background =
+    type === "success"
+      ? "linear-gradient(90deg,#10B981,#34D399)"
+      : "linear-gradient(90deg,#EF4444,#F87171)";
+  document.body.appendChild(box);
+  setTimeout(() => {
+    box.style.opacity = "1";
+    box.style.transform = "scale(1)";
+  }, 50);
+  setTimeout(() => {
+    box.style.opacity = "0";
+    box.style.transform = "scale(0.95)";
+    setTimeout(() => box.remove(), 400);
+  }, 3000);
 }
 
 /* ---------------- Geo Data Loader ---------------- */
 fetch("geo_data.json")
-  .then(res => res.json())
-  .then(data => {
-    GEO_DATA = data;
-    populateRegions();
-  })
-  .catch(err => console.error("Failed to load geo_data:", err));
+  .then(res => res.json())
+  .then(data => {
+    GEO_DATA = data;
+    populateRegions();
+  })
+  .catch(err => console.error("Failed to load geo_data:", err));
 
 function populateRegions() {
-  regionEl.innerHTML = '<option value="" disabled selected>Select Region</option>';
-  Object.keys(GEO_DATA).forEach(r => {
-    const o = document.createElement("option");
-    o.value = r;
-    o.textContent = r;
-    regionEl.appendChild(o);
-  });
+  regionEl.innerHTML = '<option value="" disabled selected>Select Region</option>';
+  Object.keys(GEO_DATA).forEach(r => {
+    const o = document.createElement("option");
+    o.value = r;
+    o.textContent = r;
+    regionEl.appendChild(o);
+  });
 }
 function populateDistricts() {
-  districtEl.innerHTML = '<option value="" disabled selected>Select District</option>';
-  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
-  upazilaEl.disabled = true;
-  const sel = regionEl.value;
-  if (!sel) { districtEl.disabled = true; return; }
-  districtEl.disabled = false;
-  Object.keys(GEO_DATA[sel]).forEach(d => {
-    const o = document.createElement("option");
-    o.value = d; o.textContent = d;
-    districtEl.appendChild(o);
-  });
+  districtEl.innerHTML = '<option value="" disabled selected>Select District</option>';
+  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
+  upazilaEl.disabled = true;
+  const sel = regionEl.value;
+  if (!sel) { districtEl.disabled = true; return; }
+  districtEl.disabled = false;
+  Object.keys(GEO_DATA[sel]).forEach(d => {
+    const o = document.createElement("option");
+    o.value = d; o.textContent = d;
+    districtEl.appendChild(o);
+  });
 }
 function populateUpazilas() {
-  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
-  const selR = regionEl.value;
-  const selD = districtEl.value;
-  if (!selR || !selD) { upazilaEl.disabled = true; return; }
-  upazilaEl.disabled = false;
-  GEO_DATA[selR][selD].forEach(u => {
-    const o = document.createElement("option");
-    o.value = u; o.textContent = u;
-    upazilaEl.appendChild(o);
-  });
+  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
+  const selR = regionEl.value;
+  const selD = districtEl.value;
+  if (!selR || !selD) { upazilaEl.disabled = true; return; }
+  upazilaEl.disabled = false;
+  GEO_DATA[selR][selD].forEach(u => {
+    const o = document.createElement("option");
+    o.value = u; o.textContent = u;
+    upazilaEl.appendChild(o);
+  });
 }
 regionEl.addEventListener("change", populateDistricts);
 districtEl.addEventListener("change", populateUpazilas);
 
 /* ---------------- Cart + Coupon Logic ---------------- */
 function getCart() {
-  try {
-    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
-  } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+  } catch { return []; }
 }
 
 
 async function loadCouponsFromFirestore() {
-  try {
-    const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
-    const snap = await getDoc(ref);
-    availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
-    console.log("✅ Coupons loaded:", availableCoupons);
-  } catch (err) {
-    console.error("Error loading coupons:", err);
-    availableCoupons = [];
-  }
+  try {
+    const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
+    const snap = await getDoc(ref);
+    availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
+    console.log("✅ Coupons loaded:", availableCoupons);
+  } catch (err) {
+    console.error("Error loading coupons:", err);
+    availableCoupons = [];
+  }
 }
 
 function findMatchingCoupon(code) {
-  return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
+  return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
 }
 function couponAppliesToCart(coupon, cart) {
-  if (!coupon) return false;
-  if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true;
-  return cart.some(i => coupon.allowedProducts.includes(i.sku));
+  if (!coupon) return false;
+  if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true;
+  return cart.some(i => coupon.allowedProducts.includes(i.sku));
 }
 function computeDiscount(coupon, total) {
-  if (!coupon) return 0;
-  return coupon.type === "percent"
-    ? Math.round(total * (coupon.amount / 100))
-    : coupon.amount;
+  if (!coupon) return 0;
+  return coupon.type === "percent"
+    ? Math.round(total * (coupon.amount / 100))
+    : coupon.amount;
 }
+
 function applyCouponClientSide(code) {
-  couponStatus.textContent = "";
-  const coupon = findMatchingCoupon(code);
-  if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
-  if (!couponAppliesToCart(coupon, cartItems))
-    return (couponStatus.textContent = "Coupon not valid for these items.");
-  const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
-  currentDiscount = computeDiscount(coupon, productTotal);
-  appliedCoupon = coupon;
-  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
-  showAlert("success", `Coupon ${coupon.code} applied!`);
+  couponStatus.textContent = "";
+  const coupon = findMatchingCoupon(code);
+  
+  if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
+  
+  // Calculate the total cost of products (excluding shipping)
+  const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
+  
+  // ✅ NEW CHECK FOR MINIMUM SPEND REQUIREMENT
+  const minRequired = coupon.minSpendRequired || 0; // Safely get minSpendRequired, defaulting to 0
+  if (productTotal < minRequired) {
+    // If the cart total is too low, reject the coupon and show the required amount.
+    appliedCoupon = null;
+    currentDiscount = 0;
+    renderOrderSummary(); // Update summary to show 0 discount
+    return (couponStatus.textContent = `❌ Minimum spent of ৳${minRequired} is required.`);
+  }
+  
+  if (!couponAppliesToCart(coupon, cartItems))
+    return (couponStatus.textContent = "Coupon not valid for these items.");
+  
+  // If all checks pass, apply the discount
+  currentDiscount = computeDiscount(coupon, productTotal);
+  appliedCoupon = coupon;
+  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
+  showAlert("success", `Coupon ${coupon.code} applied!`);
 }
+
 applyCouponBtn.addEventListener("click", async () => {
-  applyCouponBtn.disabled = true;
-  applyCouponBtn.innerHTML =
-    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
-       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-     </svg> Applying...`;
+  applyCouponBtn.disabled = true;
+  applyCouponBtn.innerHTML =
+    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
+       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+     </svg> Applying...`;
 
-  // Refresh coupons from Firestore (in case admin changed them)
-  await loadCouponsFromFirestore();
+  // Refresh coupons from Firestore (in case admin changed them)
+  await loadCouponsFromFirestore();
 
-  const code = couponInput.value.trim();
+  const code = couponInput.value.trim();
 
-  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
-  applyCouponClientSide(code);
+  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
+  applyCouponClientSide(code);
 
-  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
-  renderOrderSummary();
+  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
+  renderOrderSummary();
 
-  // Enable button again after short delay to keep UX smooth
-  setTimeout(() => {
-    applyCouponBtn.disabled = false;
-    applyCouponBtn.textContent = "Apply";
-  }, 1000);
+  // Enable button again after short delay to keep UX smooth
+  setTimeout(() => {
+    applyCouponBtn.disabled = false;
+    applyCouponBtn.textContent = "Apply";
+  }, 1000);
 });
 
 
@@ -301,36 +319,36 @@ applyCouponBtn.addEventListener("click", async () => {
 
 /* ---------------- Initialize checkout ---------------- */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load cart from localStorage
-  cartItems = getCart();
-  console.log("DEBUG: checkout cartItems:", cartItems);
+  // Load cart from localStorage
+  cartItems = getCart();
+  console.log("DEBUG: checkout cartItems:", cartItems);
 
-  // If cart is empty, inform user and redirect back to cart page
-  if (!cartItems.length) {
-    showAlert("error", "🛒 Your cart is empty — you will be returned to Cart.");
-    setTimeout(() => (window.location.href = "cart.html"), 1800);
-    return;
-  }
+  // If cart is empty, inform user and redirect back to cart page
+  if (!cartItems.length) {
+    showAlert("error", "🛒 Your cart is empty — you will be returned to Cart.");
+    setTimeout(() => (window.location.href = "cart.html"), 1800);
+    return;
+  }
 
-  // Ensure geo data is available before populating regions
-  if (Object.keys(GEO_DATA).length) {
-    populateRegions();
-  } else {
-    try {
-      const res = await fetch("geo_data.json");
-      GEO_DATA = await res.json();
-      populateRegions();
-    } catch (err) {
-      console.error("Geo data failed:", err);
-      showAlert("error", "⚠️ Could not load delivery regions.");
-    }
-  }
+  // Ensure geo data is available before populating regions
+  if (Object.keys(GEO_DATA).length) {
+    populateRegions();
+  } else {
+    try {
+      const res = await fetch("geo_data.json");
+      GEO_DATA = await res.json();
+      populateRegions();
+    } catch (err) {
+      console.error("Geo data failed:", err);
+      showAlert("error", "⚠️ Could not load delivery regions.");
+    }
+  }
 
-  // Render the order summary now that cartItems is ready
-  renderOrderSummary();
+  // Render the order summary now that cartItems is ready
+  renderOrderSummary();
 
-  // Load coupons (background)
-  await loadCouponsFromFirestore();
+  // Load coupons (background)
+  await loadCouponsFromFirestore();
 });
 
 
@@ -341,70 +359,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // base delivery fees by region (you can adjust values)
 const DELIVERY_FEES_BY_REGION = {
-  Dhaka: 80,
-  Chattogram: 100,
-  Rajshahi: 120,
-  Khulna: 120,
-  Sylhet: 110,
-  Rangpur: 130,
-  Barishal: 130,
-  Mymensingh: 120,
+  Dhaka: 80,
+  Chattogram: 100,
+  Rajshahi: 120,
+  Khulna: 120,
+  Sylhet: 110,
+  Rangpur: 130,
+  Barishal: 130,
+  Mymensingh: 120,
 };
 
 // get delivery fee based on selected region
 function getDeliveryFee() {
-  const region = regionEl.value;
-  return DELIVERY_FEES_BY_REGION[region] || 80; // default 80
+  const region = regionEl.value;
+  return DELIVERY_FEES_BY_REGION[region] || 80; // default 80
 }
 
 // compute all totals
 function calculateTotals() {
-  const productTotal = cartItems.reduce(
-    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
-    0
-  );
-  const deliveryFee = getDeliveryFee();
-  const discount = currentDiscount || 0;
-  const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
-  return { productTotal, deliveryFee, discount, grandTotal };
+  const productTotal = cartItems.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+    0
+  );
+  const deliveryFee = getDeliveryFee();
+  const discount = currentDiscount || 0;
+  const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
+  return { productTotal, deliveryFee, discount, grandTotal };
 }
 
 // render summary table
 function renderOrderSummary() {
-  if (!cartItems.length) {
-    cartSummaryBody.innerHTML =
-      '<tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is empty.</td></tr>';
-    priceSummaryFoot.innerHTML = "";
-    return;
-  }
+  if (!cartItems.length) {
+    cartSummaryBody.innerHTML =
+      '<tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is empty.</td></tr>';
+    priceSummaryFoot.innerHTML = "";
+    return;
+  }
 
-  cartSummaryBody.innerHTML = cartItems
-    .map(
-      (i) => `
-      <tr>
-        <td>${i.name} <span class="text-xs text-gray-500">x${i.qty}</span></td>
-        <td class="text-right">৳${(i.price * i.qty).toFixed(0)}</td>
-      </tr>`
-    )
-    .join("");
+  cartSummaryBody.innerHTML = cartItems
+    .map(
+      (i) => `
+      <tr>
+        <td>${i.name} <span class="text-xs text-gray-500">x${i.qty}</span></td>
+        <td class="text-right">৳${(i.price * i.qty).toFixed(0)}</td>
+      </tr>`
+    )
+    .join("");
 
-  const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
+  const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
 
-  // ✅ Includes Pathao courier service notice
-  priceSummaryFoot.innerHTML = `
-    <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
-    <tr>
-      <td class="text-gray-600">Delivery Fee</td>
-      <td class="text-right text-gray-600">৳${deliveryFee.toFixed(0)}</td>
-    </tr>
-    <tr>
-      <td colspan="2" class="text-xs text-gray-500 italic pb-2">
-        ⚠️ Delivery charge is set by <b>Pathao Courier Service</b>. We are not responsible for this fee.
-      </td>
-    </tr>
-    <tr><td class="text-green-600">Discount</td><td class="text-right text-green-600">-৳${discount.toFixed(0)}</td></tr>
-    <tr class="total-row-summary"><td>Grand Total</td><td class="text-right font-bold text-orange-600">৳${grandTotal.toFixed(0)}</td></tr>
-  `;
+  // ✅ Includes Pathao courier service notice
+  priceSummaryFoot.innerHTML = `
+    <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
+    <tr>
+      <td class="text-gray-600">Delivery Fee</td>
+      <td class="text-right text-gray-600">৳${deliveryFee.toFixed(0)}</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="text-xs text-gray-500 italic pb-2">
+        ⚠️ Delivery charge is set by <b>Pathao Courier Service</b>. We are not responsible for this fee. <b> the fee is depend on </b>Pathao Courier Service .
+      </td>
+    </tr>
+    <tr><td class="text-green-600">Discount</td><td class="text-right text-green-600">-৳${discount.toFixed(0)}</td></tr>
+    <tr class="total-row-summary"><td>Grand Total</td><td class="text-right font-bold text-orange-600">৳${grandTotal.toFixed(0)}</td></tr>
+  `;
 }
 
 /* --- Update totals whenever region or coupon changes --- */
@@ -412,120 +430,161 @@ regionEl.addEventListener("change", renderOrderSummary);
 districtEl.addEventListener("change", renderOrderSummary);
 upazilaEl.addEventListener("change", renderOrderSummary);
 couponInput.addEventListener("input", () => {
-  // reset displayed coupon message when user edits
-  couponStatus.textContent = "";
+  // reset displayed coupon message when user edits
+  couponStatus.textContent = "";
 });
 
 
 
 /* ---------------- Payment Switching ---------------- */
-document.querySelectorAll('.select-btn[data-method]').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    document.querySelectorAll('.select-btn[data-method]').forEach(b=>b.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    const method=e.currentTarget.getAttribute('data-method');
-    document.getElementById('payment-method').value=method;
-    const online=document.getElementById('online-payment-fields');
-    const show=method==="Online Payment";
-    online.classList.toggle('hidden',!show);
-    document.getElementById('sender-number').required=show;
-    document.getElementById('transaction-id').required=show;
-  });
+
+// Helper to manage channel selection within Online Payment block
+function handleChannelSelection(e) {
+    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const ch = e.currentTarget.getAttribute('data-channel');
+    document.getElementById('payment-channel').value = ch;
+    showAlert("success", `💳 ${ch} selected for online payment`);
+}
+
+// Main logic for switching between COD and Online Payment
+document.querySelectorAll('.select-btn[data-method]').forEach(btn => {
+    btn.addEventListener('click', e => {
+        document.querySelectorAll('.select-btn[data-method]').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        const method = e.currentTarget.getAttribute('data-method');
+        document.getElementById('payment-method').value = method;
+        const online = document.getElementById('online-payment-fields');
+        const show = method === "Online Payment";
+
+        online.classList.toggle('hidden', !show);
+        
+        // Set required attributes for online payment fields
+        document.getElementById('sender-number').required = show;
+        document.getElementById('transaction-id').required = show;
+
+        if (!show) {
+            // If switching to COD, clear online specific values
+            document.getElementById('payment-channel').value = '';
+            document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b => b.classList.remove('active'));
+        }
+    });
 });
 
-document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b=>b.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    const ch=e.currentTarget.getAttribute('data-channel');
-    document.getElementById('payment-channel').value=ch;
-    showAlert("success",`💳 ${ch} selected for online payment`);
-  });
+// Event listeners for Bkash / Nagad buttons
+document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn => {
+    btn.addEventListener('click', handleChannelSelection);
 });
+
+
 
 /* ---------------- Place Order ---------------- */
 document.getElementById("order-form").addEventListener("submit", async ev => {
-  ev.preventDefault();
-  if (!cartItems.length) return showAlert("error","Your cart is empty!");
+  ev.preventDefault();
 
-  const orderId = "WF" + Date.now();
-  const order = {
-    orderId,
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    region: regionEl.value,
-    district: districtEl.value,
-    upazila: upazilaEl.value,
-    address: document.getElementById("address").value,
-    paymentMethod: document.getElementById("payment-method").value,
-    paymentChannel: document.getElementById("payment-channel").value,
-    senderNumber: document.getElementById("sender-number").value,
-    transactionId: document.getElementById("transaction-id").value,
-    cartItems,
-    discount: currentDiscount,
-    timestamp: new Date().toISOString(),
-  };
+  // 1. Pre-checks and Setup
+  if (!cartItems.length) return showAlert("error", "Your cart is empty!");
 
-  placeOrderBtn.disabled = true;
-  placeOrderBtn.textContent = "Processing...";
+  const orderId = "WF" + Date.now();
+  const { grandTotal } = calculateTotals();
+  
+  // Gather form data
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const address = document.getElementById("address").value;
+  const paymentMethod = document.getElementById("payment-method").value;
+  const isOnline = paymentMethod === "Online Payment";
+  
+  // Online payment validation: Check if required online fields are filled
+  if (isOnline && (!document.getElementById("payment-channel").value || !document.getElementById("sender-number").value || !document.getElementById("transaction-id").value)) {
+    return showAlert("error", "Please complete all required Online Payment fields.");
+  }
+  
+  const order = {
+    orderId,
+    name,
+    phone,
+    region: regionEl.value,
+    district: districtEl.value,
+    upazila: upazilaEl.value,
+    address,
+    paymentMethod,
+    // Only include online-specific fields if Online Payment is selected
+    paymentChannel: isOnline ? document.getElementById("payment-channel").value : null,
+    senderNumber: isOnline ? document.getElementById("sender-number").value : null,
+    transactionId: isOnline ? document.getElementById("transaction-id").value : null,
+    cartItems,
+    grandTotal: grandTotal,
+    discount: currentDiscount,
+    timestamp: new Date().toISOString(),
+  };
 
-  // send to Google Sheet
-  const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
-  try {
-    await fetch(scriptURL,{method:"POST",body:JSON.stringify(order),headers:{"Content-Type":"application/json"}});
-  } catch(e){ console.error("Sheet send failed",e); }
+  placeOrderBtn.disabled = true;
+  placeOrderBtn.textContent = "Processing...";
 
-  // save to Firestore
-  try {
-    await setDoc(doc(db,"artifacts/WideFind/public/data/Orders",orderId),order);
-    
-    // ✅ Decrement coupon usage if applied
-if (appliedCoupon && appliedCoupon.code) {
-  try {
-    const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
-    const snap = await getDoc(couponRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      const updatedCodes = (data.validCodes || []).map(c => {
-        if (c.code === appliedCoupon.code && c.usageLimit > 0) {
-          return { ...c, usageLimit: c.usageLimit - 1 };
-        }
-        return c;
-      });
-      await setDoc(couponRef, { ...data, validCodes: updatedCodes });
-      console.log(`✅ Coupon ${appliedCoupon.code} usage decremented.`);
-    }
-  } catch (err) {
-    console.error("❌ Failed to decrement coupon usage:", err);
-  }
-}
+  // 2. Send to Google Sheet (Fire & Forget, in case of failure)
+  const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
+  try {
+    await fetch(scriptURL, { method: "POST", body: JSON.stringify(order), headers: { "Content-Type": "application/json" } });
+  } catch (e) {
+    console.error("Sheet send failed", e);
+  }
 
-localStorage.removeItem(CART_STORAGE_KEY);
-showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
-setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
-    localStorage.removeItem(CART_STORAGE_KEY);
-    showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
-    setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
-  } catch(err){
-    console.error(err);
-    showAlert("error","❌ Failed to save order!");
-  } finally {
-    placeOrderBtn.disabled=false;
-    placeOrderBtn.textContent="Place Order";
-  }
+  // 3. Save to Firestore & Track Coupon
+  try {
+    // Save the main order document
+    await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
+    
+    // Correct Coupon Usage Tracking Logic
+    if (appliedCoupon && appliedCoupon.code) {
+        try {
+            const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
+            const snap = await getDoc(couponRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                const updatedCodes = (data.validCodes || []).map(c => {
+                    const totalLimit = c.usageLimit || 0;
+                    const usedCount = c.used || 0;
+                    
+                    if (c.code === appliedCoupon.code && totalLimit > 0 && totalLimit > usedCount) {
+                        // This is the single, correct place to increment the used count
+                        return { ...c, used: usedCount + 1 };
+                    }
+                    return c;
+                });
+                await setDoc(couponRef, { ...data, validCodes: updatedCodes });
+            }
+        } catch (err) {
+            console.error("❌ Failed to track coupon usage:", err);
+        }
+    }
+
+    // 4. Final Cleanup and Redirect (Only runs if Firestore save succeeds)
+    localStorage.removeItem(CART_STORAGE_KEY);
+    showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
+    setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
+  
+  } catch (err) {
+    console.error(err);
+    showAlert("error", "❌ Failed to save order! Please check your internet connection.");
+  } finally {
+    placeOrderBtn.disabled = false;
+    placeOrderBtn.textContent = "Place Order";
+  }
 });
 
 /* ---------------- Cancel Order ---------------- */
 cancelOrderBtn.addEventListener("click",()=>{
-  if(confirm("Are you sure you want to cancel this order?")){
-    showAlert("error","❌ Order cancelled — returning to cart...");
-    setTimeout(()=>window.location.href="cart.html",1500);
-  }
+  if(confirm("Are you sure you want to cancel this order?")){
+    showAlert("error","❌ Order cancelled — returning to cart...");
+    setTimeout(()=>window.location.href="cart.html",1500);
+  }
 });
 </script>
 
 
 </body>
 </html>
+
 
 
