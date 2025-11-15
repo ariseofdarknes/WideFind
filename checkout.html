@@ -475,50 +475,48 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
     await fetch(scriptURL,{method:"POST",body:JSON.stringify(order),headers:{"Content-Type":"application/json"}});
   } catch(e){ console.error("Sheet send failed",e); }
 
-  // save to Firestore
-  try {
-    await setDoc(doc(db,"orders",orderId),order);
-    
- // ✅ Update coupon usage correctly (increase 'used', do not reduce 'usageLimit')
-if (appliedCoupon && appliedCoupon.code) {
-  try {
-    const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
-    const snap = await getDoc(couponRef);
+// save to Firestore
+try {
+  await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
 
-    if (snap.exists()) {
-      const data = snap.data();
-      const updatedCodes = (data.validCodes || []).map(c => {
-        if (c.code === appliedCoupon.code) {
-          const newUsed = (c.used || 0) + 1;
-          return { ...c, used: newUsed };
-        }
-        return c;
-      });
+  // Update coupon usage if applied
+  if (appliedCoupon && appliedCoupon.code) {
+    try {
+      const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
+      const snap = await getDoc(couponRef);
 
-      await setDoc(couponRef, { ...data, validCodes: updatedCodes });
-      console.log(`🔥 Coupon ${appliedCoupon.code} used count increased.`);
+      if (snap.exists()) {
+        const data = snap.data();
+        const updatedCodes = (data.validCodes || []).map(c => {
+          if (c.code === appliedCoupon.code) {
+            const newUsed = (c.used || 0) + 1;
+            return { ...c, used: newUsed };
+          }
+          return c;
+        });
+
+        await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
+        console.log(`🔥 Coupon ${appliedCoupon.code} used count increased.`);
+      }
+    } catch (err) {
+      console.error("❌ Failed to update coupon usage:", err);
     }
-  } catch (err) {
-    console.error("❌ Failed to update coupon usage:", err);
   }
+
+  // Final success actions
+  localStorage.removeItem(CART_STORAGE_KEY);
+  showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
+  setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
+
+} catch (err) {
+  console.error(err);
+  showAlert("error", "❌ Failed to save order!");
+} finally {
+  placeOrderBtn.disabled = false;
+  placeOrderBtn.textContent = "Place Order";
 }
 
-
-localStorage.removeItem(CART_STORAGE_KEY);
-showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
-setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
-    localStorage.removeItem(CART_STORAGE_KEY);
-    showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
-    setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
-  } catch(err){
-    console.error(err);
-    showAlert("error","❌ Failed to save order!");
-  } finally {
-    placeOrderBtn.disabled=false;
-    placeOrderBtn.textContent="Place Order";
-  }
 });
-
 /* ---------------- Cancel Order ---------------- */
 cancelOrderBtn.addEventListener("click",()=>{
   if(confirm("Are you sure you want to cancel this order?")){
