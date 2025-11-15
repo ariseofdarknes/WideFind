@@ -152,11 +152,6 @@
                         const slide = document.createElement('div');
                         slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
                         slide.style.backgroundImage = `url('${banner.img}')`;
-                        slide.innerHTML = `
-                            <div class="container banner-text-overlay">
-                                <p>${banner.text || ''}</p>
-                            </div>
-                        `;
                         bannerSlider.appendChild(slide);
                     });
                     
@@ -265,3 +260,4 @@
 
 </body>
 </html>
+
