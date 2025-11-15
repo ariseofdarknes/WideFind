@@ -119,20 +119,8 @@ const firebaseConfig = {
     messagingSenderId: "995581566071",
     appId: "1:995581566071:web:1640d0236302d369aefa72",
 };
-
-let app, db;
-let firebaseInitialized = false;
-
-// Initialize Firebase with error handling
-try {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    firebaseInitialized = true;
-    console.log("✅ Firebase initialized successfully");
-} catch (err) {
-    console.error("❌ Firebase initialization failed:", err);
-    firebaseInitialized = false;
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const CART_STORAGE_KEY = "widefindCart";
 const SUCCESS_REDIRECT_URL = "index.html";
@@ -164,27 +152,6 @@ function showAlert(type, msg) {
     document.body.appendChild(box);
     setTimeout(() => { box.style.opacity = "1"; box.style.transform = "scale(1)"; }, 50);
     setTimeout(() => { box.style.opacity = "0"; box.style.transform = "scale(0.95)"; setTimeout(() => box.remove(), 400); }, 3000);
-}
-
-// Check internet connectivity
-async function checkInternetConnection() {
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
-        const response = await fetch('https://www.google.com/favicon.ico', {
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-cache',
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        return true;
-    } catch (err) {
-        console.error("Internet check failed:", err);
-        return false;
-    }
 }
 
 fetch("geo_data.json")
@@ -238,11 +205,6 @@ function getCart() {
 }
 
 async function loadCouponsFromFirestore() {
-    if (!firebaseInitialized) {
-        console.warn("⚠️ Firebase not initialized, skipping coupon load");
-        return;
-    }
-    
     try {
         const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
         const snap = await getDoc(ref);
@@ -404,20 +366,6 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
 
     if (!cartItems.length) return showAlert("error", "Your cart is empty!");
 
-    // Check Firebase initialization
-    if (!firebaseInitialized) {
-        showAlert("error", "❌ Firebase is not initialized. Please refresh the page and try again.");
-        console.error("Firebase not initialized");
-        return;
-    }
-
-    // Check internet connection first
-    const hasInternet = await checkInternetConnection();
-    if (!hasInternet) {
-        showAlert("error", "❌ No internet connection! Please check your network and try again.");
-        return;
-    }
-
     const orderId = "WF" + Date.now();
     const { grandTotal } = calculateTotals();
     
@@ -427,6 +375,7 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
     const paymentMethod = document.getElementById("payment-method").value;
     const isOnline = paymentMethod === "Online Payment";
     
+    // ✅ FIXED: Better validation for online payment fields
     if (isOnline) {
         const channel = document.getElementById("payment-channel").value;
         const senderNum = document.getElementById("sender-number").value;
@@ -461,31 +410,20 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
     };
 
     placeOrderBtn.disabled = true;
-    placeOrderBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg> Processing...`;
+    placeOrderBtn.textContent = "Processing...";
 
     // Send to Google Sheet (optional, continue even if fails)
     const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
     try {
-        const sheetResponse = await fetch(scriptURL, { 
-            method: "POST", 
-            body: JSON.stringify(order), 
-            headers: { "Content-Type": "application/json" },
-            mode: 'no-cors'
-        });
-        console.log("✅ Order sent to Google Sheets");
+        await fetch(scriptURL, { method: "POST", body: JSON.stringify(order), headers: { "Content-Type": "application/json" } });
     } catch (e) {
-        console.warn("⚠️ Sheet send failed (non-critical):", e.message);
+        console.error("Sheet send failed (non-critical):", e);
     }
 
+    // ✅ FIXED: Better error handling with specific messages
     try {
-        // Save order to Firestore with timeout
-        const savePromise = setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Firebase request timeout')), 15000)
-        );
-        
-        await Promise.race([savePromise, timeoutPromise]);
-        console.log("✅ Order saved to Firebase successfully");
+      await setDoc(doc(db, "Orders", orderId), order);
+        console.log("✅ Order saved to Firebase");
         
         // Track coupon usage
         if (appliedCoupon && appliedCoupon.code) {
@@ -516,7 +454,7 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
                 });
                 console.log("✅ Coupon usage tracked successfully");
             } catch (err) {
-                console.warn("⚠️ Failed to track coupon usage (non-critical):", err);
+                console.error("❌ Failed to track coupon usage (non-critical):", err);
             }
         }
 
@@ -525,30 +463,29 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
         setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
     
     } catch (err) {
-        console.error("❌ Firebase error details:", err);
+        console.error("Firebase error:", err);
         
-        let errorMessage = "❌ Failed to place order. ";
-        
-        if (err.message === 'Firebase request timeout') {
-            errorMessage += "Request timed out. Please check your internet connection and try again.";
-        } else if (err.code === 'permission-denied') {
-            errorMessage += "Permission denied! Please contact support.";
-            console.error("FIREBASE SECURITY RULES ERROR - Check your Firestore rules!");
-        } else if (err.code === 'unavailable' || err.message.includes('network')) {
-            errorMessage += "Cannot connect to server. Please check your internet connection.";
-        } else if (err.code === 'unauthenticated') {
-            errorMessage += "Authentication required. Please contact support.";
+        // ✅ FIXED: Show specific error message
+        if (err.code === 'permission-denied') {
+            showAlert("error", "❌ Permission denied! Please check Firebase security rules.");
+        } else if (err.code === 'unavailable') {
+            showAlert("error", "❌ Cannot connect to Firebase. Please check your internet connection.");
         } else {
-            errorMessage += err.message || 'Unknown error occurred.';
+            showAlert("error", `❌ Failed to save order: ${err.message || 'Unknown error'}`);
         }
-        
-        showAlert("error", errorMessage);
     } finally {
         placeOrderBtn.disabled = false;
-        placeOrderBtn.innerHTML = "Place Order";
+        placeOrderBtn.textContent = "Place Order";
     }
 });
 
 cancelOrderBtn.addEventListener("click",()=>{
     if(confirm("Are you sure you want to cancel this order?")){
-        showAlert("
+        showAlert("error","❌ Order cancelled – returning to cart...");
+        setTimeout(()=>window.location.href="cart.html",1500);
+    }
+});
+</script>
+
+</body>
+</html>
