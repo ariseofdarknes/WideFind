@@ -6,143 +6,260 @@
     <title>WideFind - Find Everything You Need</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Cart badge styles */
+        .cart-badge {
+            position: relative;
+            display: inline-block;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #ff6600;
+        }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff6600;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+    </style>
 </head>
 <body>
 
     <header class="site-header">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
             <h1><a href="index.html" style="text-decoration: none; color: #ff6600;">WideFind</a></h1>
+            <div class="header-actions">
+                <a href="cart.html" class="cart-badge" title="View Cart">
+                    🛒
+                    <span class="cart-count" id="cart-count">0</span>
+                </a>
+            </div>
         </div>
     </header>
     
+    <!-- Dynamic Ads Banner (loaded from Firebase) -->
     <div class="ads-banner-container">
-        <div class="ads-slider">
-            <div class="banner-slide active" style="background-image: url('https://images.pexels.com/photos/157757/hand-watch-time-clock-157757.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=1200');">
-                <div class="container banner-text-overlay">
-                    <p>🔥 **Limited Time Offer:** Get 30% OFF on all Watches! Shop Now! 🔥</p>
-                </div>
-            </div>
+        <div class="ads-slider" id="banner-slider">
+            <!-- Banners will be loaded here -->
         </div>
     </div>
 
+    <!-- Dynamic Category Menu (loaded from Firebase) -->
     <nav class="category-menu-wrapper">
         <div class="container">
-            <div class="category-menu-slider">
+            <div class="category-menu-slider" id="category-menu">
                 <a href="#" class="category-item active" data-category="popular">Popular</a>
-                <a href="#" class="category-item" data-category="T-Shirt">T-Shirt</a>
-                <a href="#" class="category-item" data-category="Sunglass">Sunglass</a>
-                <a href="#" class="category-item" data-category="Watch">Watch</a>
-                <a href="#" class="category-item" data-category="Men's Fashion">Men's Fashion</a>
-                <a href="#" class="category-item" data-category="Women's Fashion">Women's Fashion</a>
-                <a href="#" class="category-item" data-category="Electronics">Electronics</a>
-                <a href="#" class="category-item" data-category="Home Goods">Home Goods</a>
-                <a href="#" class="category-item" data-category="Accessories">Accessories</a>
+                <!-- More categories loaded dynamically -->
             </div>
         </div>
     </nav>
 
     <main class="container">
         <h2 id="product-section-title">Popular Products</h2>
-        <div class="product-grid" id="product-list-container"></div>
+        <div class="product-grid" id="product-list-container">
+            <p style="text-align:center; color:#999;">Loading products...</p>
+        </div>
     </main>
+
+    <footer class="site-footer" style="text-align: center; padding: 20px; background: #fff; margin-top: 40px;">
+        <p>© 2025 WideFind. All Rights Reserved.</p>
+    </footer>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-
-
-// ✅ Add the helper function right here, before Firebase code
-function getValidImageURL(url) {
-  if (!url) return "images/placeholder.png"; // fallback
-
-  if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-    const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-    if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
-  }
-
-  return url;
-}
-
-
+    // Helper function for image URLs
+    function getValidImageURL(url) {
+        if (!url) return "https://placehold.co/400x300?text=No+Image";
+        if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+            const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+            if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+        }
+        return url;
+    }
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-      authDomain: "my-ecom-site-168ab.firebaseapp.com",
-      projectId: "my-ecom-site-168ab",
-      storageBucket: "my-ecom-site-168ab.appspot.com",
-      messagingSenderId: "995581566071",
-      appId: "1:995581566071:web:1640d0236302d369aefa72",
-      measurementId: "G-NLHKNBHCFN"
+        apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+        authDomain: "my-ecom-site-168ab.firebaseapp.com",
+        projectId: "my-ecom-site-168ab",
+        storageBucket: "my-ecom-site-168ab.appspot.com",
+        messagingSenderId: "995581566071",
+        appId: "1:995581566071:web:1640d0236302d369aefa72",
+        measurementId: "G-NLHKNBHCFN"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     const appId = "WideFind";
+    const CART_STORAGE_KEY = 'widefindCart';
 
+    // Update cart count badge
+    function updateCartCount() {
+        try {
+            const cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+            const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+            document.getElementById('cart-count').textContent = totalItems;
+        } catch (e) {
+            console.error('Error updating cart count:', e);
+        }
+    }
+
+    // Load site settings (categories, banners)
+    async function loadSiteSettings() {
+        try {
+            const settingsRef = doc(db, `artifacts/${appId}/public/data/config/siteSettings`);
+            const snap = await getDoc(settingsRef);
+            
+            if (snap.exists()) {
+                const settings = snap.data();
+                
+                // Load categories
+                const categories = settings.categoryList || ['Popular','T-Shirt','Sunglass','Watch'];
+                const menu = document.getElementById('category-menu');
+                menu.innerHTML = '<a href="#" class="category-item active" data-category="popular">Popular</a>';
+                
+                categories.forEach(cat => {
+                    if (cat.toLowerCase() !== 'popular') {
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.className = 'category-item';
+                        link.dataset.category = cat;
+                        link.textContent = cat;
+                        menu.appendChild(link);
+                    }
+                });
+                
+                // Load banners
+                const banners = settings.adBanners || [];
+                const bannerSlider = document.getElementById('banner-slider');
+                bannerSlider.innerHTML = '';
+                
+                if (banners.length > 0) {
+                    banners.forEach((banner, index) => {
+                        const slide = document.createElement('div');
+                        slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
+                        slide.style.backgroundImage = `url('${banner.img}')`;
+                        slide.innerHTML = `
+                            <div class="container banner-text-overlay">
+                                <p>${banner.text || ''}</p>
+                            </div>
+                        `;
+                        bannerSlider.appendChild(slide);
+                    });
+                    
+                    // Auto-rotate banners
+                    if (banners.length > 1) {
+                        let currentBanner = 0;
+                        setInterval(() => {
+                            const slides = document.querySelectorAll('.banner-slide');
+                            slides[currentBanner].classList.remove('active');
+                            currentBanner = (currentBanner + 1) % slides.length;
+                            slides[currentBanner].classList.add('active');
+                        }, 5000);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+
+    // Load products
     async function loadProducts(category = "popular") {
         const container = document.getElementById('product-list-container');
         const title = document.getElementById('product-section-title');
-        container.innerHTML = "";
+        container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#999;padding:40px;">Loading products...</p>';
 
-        const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
-        const snapshot = await getDocs(productsRef);
+        try {
+            const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
+            const snapshot = await getDocs(productsRef);
 
-        let products = [];
-        snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+            let products = [];
+            snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
 
-        if (category === "popular") {
-            products = products.filter(p => p.isPopular === true);
-            title.textContent = "Popular Products";
-        } else {
-            products = products.filter(p => p.category === category);
-            title.textContent = `${category} Collection`;
-        }
-
-        if (products.length === 0) {
-            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:20px;">No products found.</p>`;
-            return;
-        }
-
-        products.forEach(product => {
-            // compute discount percent for display (do not change product.price)
-            let displayPercent = 0;
-            if (product.discountPercent && Number(product.discountPercent) > 0) {
-                displayPercent = Math.round(Number(product.discountPercent));
-            } else if (product.discountAmount && Number(product.originalPrice) > 0) {
-                displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
+            if (category === "popular") {
+                products = products.filter(p => p.isPopular === true);
+                title.textContent = "Popular Products";
+            } else {
+                products = products.filter(p => p.category === category);
+                title.textContent = `${category} Collection`;
             }
 
-            const card = document.createElement("div");
-            card.classList.add("product-card");
-            card.innerHTML = `
-            
-           <img src="${getValidImageURL((product.images && product.images[0]) ? product.images[0] : '') || 'https://placehold.co/400x300?text=No+Image'}"
+            container.innerHTML = '';
 
-                <h3 title="${product.name || ''}">${product.name || ''}</h3>
-                <div class="price-container">
-                    <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-                    ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-                    ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-                </div>
-                <a href="product.html?id=${product.id}" class="btn-buy">View Details</a>
-            `;
-            container.appendChild(card);
-        });
+            if (products.length === 0) {
+                container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found in this category.</p>`;
+                return;
+            }
+
+            products.forEach(product => {
+                // Calculate discount percentage for display
+                let displayPercent = 0;
+                if (product.discountPercent && Number(product.discountPercent) > 0) {
+                    displayPercent = Math.round(Number(product.discountPercent));
+                } else if (product.discountAmount && Number(product.originalPrice) > 0) {
+                    displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
+                }
+
+                // Get first image
+                let firstImage = '';
+                if (Array.isArray(product.images) && product.images.length > 0) {
+                    firstImage = product.images[0];
+                } else if (typeof product.images === 'string' && product.images.trim()) {
+                    firstImage = product.images.split(',')[0].trim();
+                }
+
+                const card = document.createElement("div");
+                card.className = "product-card";
+                card.innerHTML = `
+                    <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
+                    <h3 title="${product.name || ''}">${product.name || ''}</h3>
+                    <div class="price-container">
+                        <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
+                        ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+                        ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+                    </div>
+                    <a href="product.html?id=${product.id}" class="btn-buy">View Details</a>
+                `;
+                container.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error loading products:', error);
+            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;padding:40px;">Failed to load products. Please refresh the page.</p>`;
+        }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        loadProducts("popular");
+    // Initialize page
+    document.addEventListener("DOMContentLoaded", async () => {
+        updateCartCount();
+        await loadSiteSettings();
+        await loadProducts("popular");
 
-        document.querySelectorAll(".category-item").forEach(btn => {
-            btn.addEventListener("click", (e) => {
+        // Category click handlers (use event delegation)
+        document.getElementById('category-menu').addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-item')) {
                 e.preventDefault();
                 document.querySelectorAll(".category-item").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                loadProducts(btn.dataset.category);
-            });
+                e.target.classList.add("active");
+                loadProducts(e.target.dataset.category);
+            }
         });
+
+        // Update cart count when returning to page
+        window.addEventListener('focus', updateCartCount);
     });
 </script>
 
