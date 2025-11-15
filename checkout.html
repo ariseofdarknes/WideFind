@@ -23,9 +23,9 @@
 </head>
 <body>
     <header class="bg-white shadow-md">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0;">
+        <div class="container flex justify-between items-center py-4 px-4">
             <h1 class="text-2xl font-bold text-orange-600">WideFind Checkout</h1>
-            <a href="cart.html" class="btn-buy" style="width: auto; padding: 10px 20px; text-decoration: none; display: inline-block;">← Back to Cart</a>
+            <a href="cart.html" class="text-gray-600 hover:text-orange-600 font-semibold">← Back to Cart</a>
         </div>
     </header>
 
@@ -107,21 +107,31 @@
         </form>
     </div>
 
-<script type="module">
+    <!-- Firebase + logic -->
+    
+    
+    
+    
+    
+    
+   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+/* ---------------- Firebase Setup ---------------- */
 const firebaseConfig = {
-    apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-    authDomain: "my-ecom-site-168ab.firebaseapp.com",
-    projectId: "my-ecom-site-168ab",
-    storageBucket: "my-ecom-site-168ab.firebasestorage.app",
-    messagingSenderId: "995581566071",
-    appId: "1:995581566071:web:1640d0236302d369aefa72",
+  apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+  authDomain: "my-ecom-site-168ab.firebaseapp.com",
+  projectId: "my-ecom-site-168ab",
+  storageBucket: "my-ecom-site-168ab.firebasestorage.app",
+  messagingSenderId: "995581566071",
+  appId: "1:995581566071:web:1640d0236302d369aefa72",
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ---------------- Constants & Elements ---------------- */
+const DELIVERY_FEES = 80;
 const CART_STORAGE_KEY = "widefindCart";
 const SUCCESS_REDIRECT_URL = "index.html";
 
@@ -136,356 +146,388 @@ const cancelOrderBtn = document.getElementById("cancel-order-btn");
 const cartSummaryBody = document.getElementById("cart-summary-body");
 const priceSummaryFoot = document.getElementById("price-summary-foot");
 
+// --- Global Data Holders ---
 let GEO_DATA = {};
 let cartItems = [];
 let availableCoupons = [];
 let appliedCoupon = null;
 let currentDiscount = 0;
 
+/* ---------------- HQ Animated Alert ---------------- */
 function showAlert(type, msg) {
-    const box = document.createElement("div");
-    box.className = "fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl text-white font-semibold shadow-xl backdrop-blur-md transition-all duration-500 transform scale-95 opacity-0";
-    box.innerHTML = type === "success"
-        ? `<svg class='w-6 h-6 text-white animate-bounce' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/></svg><span>${msg}</span>`
-        : `<svg class='w-6 h-6 text-white animate-pulse' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/></svg><span>${msg}</span>`;
-    box.style.background = type === "success" ? "linear-gradient(90deg,#10B981,#34D399)" : "linear-gradient(90deg,#EF4444,#F87171)";
-    document.body.appendChild(box);
-    setTimeout(() => { box.style.opacity = "1"; box.style.transform = "scale(1)"; }, 50);
-    setTimeout(() => { box.style.opacity = "0"; box.style.transform = "scale(0.95)"; setTimeout(() => box.remove(), 400); }, 3000);
+  const box = document.createElement("div");
+  box.className =
+    "fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl text-white font-semibold shadow-xl backdrop-blur-md transition-all duration-500 transform scale-95 opacity-0";
+  box.innerHTML =
+    type === "success"
+      ? `<svg class='w-6 h-6 text-white animate-bounce' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/></svg><span>${msg}</span>`
+      : `<svg class='w-6 h-6 text-white animate-pulse' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/></svg><span>${msg}</span>`;
+  box.style.background =
+    type === "success"
+      ? "linear-gradient(90deg,#10B981,#34D399)"
+      : "linear-gradient(90deg,#EF4444,#F87171)";
+  document.body.appendChild(box);
+  setTimeout(() => {
+    box.style.opacity = "1";
+    box.style.transform = "scale(1)";
+  }, 50);
+  setTimeout(() => {
+    box.style.opacity = "0";
+    box.style.transform = "scale(0.95)";
+    setTimeout(() => box.remove(), 400);
+  }, 3000);
 }
 
+/* ---------------- Geo Data Loader ---------------- */
 fetch("geo_data.json")
-    .then(res => res.json())
-    .then(data => { GEO_DATA = data; populateRegions(); })
-    .catch(err => console.error("Failed to load geo_data:", err));
+  .then(res => res.json())
+  .then(data => {
+    GEO_DATA = data;
+    populateRegions();
+  })
+  .catch(err => console.error("Failed to load geo_data:", err));
 
 function populateRegions() {
-    regionEl.innerHTML = '<option value="" disabled selected>Select Region</option>';
-    Object.keys(GEO_DATA).forEach(r => {
-        const o = document.createElement("option");
-        o.value = r; o.textContent = r;
-        regionEl.appendChild(o);
-    });
+  regionEl.innerHTML = '<option value="" disabled selected>Select Region</option>';
+  Object.keys(GEO_DATA).forEach(r => {
+    const o = document.createElement("option");
+    o.value = r;
+    o.textContent = r;
+    regionEl.appendChild(o);
+  });
 }
-
 function populateDistricts() {
-    districtEl.innerHTML = '<option value="" disabled selected>Select District</option>';
-    upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
-    upazilaEl.disabled = true;
-    const sel = regionEl.value;
-    if (!sel) { districtEl.disabled = true; return; }
-    districtEl.disabled = false;
-    Object.keys(GEO_DATA[sel]).forEach(d => {
-        const o = document.createElement("option");
-        o.value = d; o.textContent = d;
-        districtEl.appendChild(o);
-    });
+  districtEl.innerHTML = '<option value="" disabled selected>Select District</option>';
+  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
+  upazilaEl.disabled = true;
+  const sel = regionEl.value;
+  if (!sel) { districtEl.disabled = true; return; }
+  districtEl.disabled = false;
+  Object.keys(GEO_DATA[sel]).forEach(d => {
+    const o = document.createElement("option");
+    o.value = d; o.textContent = d;
+    districtEl.appendChild(o);
+  });
 }
-
 function populateUpazilas() {
-    upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
-    const selR = regionEl.value;
-    const selD = districtEl.value;
-    if (!selR || !selD) { upazilaEl.disabled = true; return; }
-    upazilaEl.disabled = false;
-    GEO_DATA[selR][selD].forEach(u => {
-        const o = document.createElement("option");
-        o.value = u; o.textContent = u;
-        upazilaEl.appendChild(o);
-    });
+  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
+  const selR = regionEl.value;
+  const selD = districtEl.value;
+  if (!selR || !selD) { upazilaEl.disabled = true; return; }
+  upazilaEl.disabled = false;
+  GEO_DATA[selR][selD].forEach(u => {
+    const o = document.createElement("option");
+    o.value = u; o.textContent = u;
+    upazilaEl.appendChild(o);
+  });
 }
+regionEl.addEventListener("change", populateDistricts);
+districtEl.addEventListener("change", populateUpazilas);
 
-regionEl.addEventListener("change", () => { populateDistricts(); renderOrderSummary(); });
-districtEl.addEventListener("change", () => { populateUpazilas(); renderOrderSummary(); });
-upazilaEl.addEventListener("change", renderOrderSummary);
-
+/* ---------------- Cart + Coupon Logic ---------------- */
 function getCart() {
-    try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || []; }
-    catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+  } catch { return []; }
 }
+
 
 async function loadCouponsFromFirestore() {
-    try {
-        const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
-        const snap = await getDoc(ref);
-        availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
-        console.log("✅ Coupons loaded:", availableCoupons);
-    } catch (err) {
-        console.error("Error loading coupons:", err);
-        availableCoupons = [];
-    }
+  try {
+    const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
+    const snap = await getDoc(ref);
+    availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
+    console.log("✅ Coupons loaded:", availableCoupons);
+  } catch (err) {
+    console.error("Error loading coupons:", err);
+    availableCoupons = [];
+  }
 }
 
 function findMatchingCoupon(code) {
-    return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
+  return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
 }
-
 function couponAppliesToCart(coupon, cart) {
-    if (!coupon) return false;
-    if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true;
-    return cart.some(i => coupon.allowedProducts.includes(i.sku));
+  if (!coupon) return false;
+  if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true;
+  return cart.some(i => coupon.allowedProducts.includes(i.sku));
 }
-
 function computeDiscount(coupon, total) {
-    if (!coupon) return 0;
-    return coupon.type === "percent" ? Math.round(total * (coupon.amount / 100)) : coupon.amount;
+  if (!coupon) return 0;
+  return coupon.type === "percent"
+    ? Math.round(total * (coupon.amount / 100))
+    : coupon.amount;
 }
-
 function applyCouponClientSide(code) {
-    couponStatus.textContent = "";
-    const coupon = findMatchingCoupon(code);
-    
-    if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
-    
-    const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
-    const minRequired = coupon.minSpendRequired || 0;
-    
-    if (productTotal < minRequired) {
-        appliedCoupon = null;
-        currentDiscount = 0;
-        renderOrderSummary();
-        return (couponStatus.textContent = `❌ Minimum spent of ৳${minRequired} is required.`);
-    }
-    
-    if (!couponAppliesToCart(coupon, cartItems))
-        return (couponStatus.textContent = "Coupon not valid for these items.");
-    
-    currentDiscount = computeDiscount(coupon, productTotal);
-    appliedCoupon = coupon;
-    couponStatus.textContent = `✅ Coupon ${coupon.code} applied – saved ৳${currentDiscount}`;
-    showAlert("success", `Coupon ${coupon.code} applied!`);
+  couponStatus.textContent = "";
+  const coupon = findMatchingCoupon(code);
+  if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
+  if (!couponAppliesToCart(coupon, cartItems))
+    return (couponStatus.textContent = "Coupon not valid for these items.");
+  const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
+  currentDiscount = computeDiscount(coupon, productTotal);
+  appliedCoupon = coupon;
+  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
+  showAlert("success", `Coupon ${coupon.code} applied!`);
 }
-
 applyCouponBtn.addEventListener("click", async () => {
-    applyCouponBtn.disabled = true;
-    applyCouponBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle><path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg> Applying...`;
-    await loadCouponsFromFirestore();
-    const code = couponInput.value.trim();
-    applyCouponClientSide(code);
-    renderOrderSummary();
-    setTimeout(() => { applyCouponBtn.disabled = false; applyCouponBtn.textContent = "Apply"; }, 1000);
+  applyCouponBtn.disabled = true;
+  applyCouponBtn.innerHTML =
+    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
+       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+     </svg> Applying...`;
+
+  // Refresh coupons from Firestore (in case admin changed them)
+  await loadCouponsFromFirestore();
+
+  const code = couponInput.value.trim();
+
+  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
+  applyCouponClientSide(code);
+
+  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
+  renderOrderSummary();
+
+  // Enable button again after short delay to keep UX smooth
+  setTimeout(() => {
+    applyCouponBtn.disabled = false;
+    applyCouponBtn.textContent = "Apply";
+  }, 1000);
 });
 
+
+
+
+/* ---------------- Initialize checkout ---------------- */
 document.addEventListener('DOMContentLoaded', async () => {
-    cartItems = getCart();
-    console.log("DEBUG: checkout cartItems:", cartItems);
+  // Load cart from localStorage
+  cartItems = getCart();
+  console.log("DEBUG: checkout cartItems:", cartItems);
 
-    if (!cartItems.length) {
-        showAlert("error", "🛒 Your cart is empty – you will be returned to Cart.");
-        setTimeout(() => (window.location.href = "cart.html"), 1800);
-        return;
+  // If cart is empty, inform user and redirect back to cart page
+  if (!cartItems.length) {
+    showAlert("error", "🛒 Your cart is empty — you will be returned to Cart.");
+    setTimeout(() => (window.location.href = "cart.html"), 1800);
+    return;
+  }
+
+  // Ensure geo data is available before populating regions
+  if (Object.keys(GEO_DATA).length) {
+    populateRegions();
+  } else {
+    try {
+      const res = await fetch("geo_data.json");
+      GEO_DATA = await res.json();
+      populateRegions();
+    } catch (err) {
+      console.error("Geo data failed:", err);
+      showAlert("error", "⚠️ Could not load delivery regions.");
     }
+  }
 
-    if (Object.keys(GEO_DATA).length) {
-        populateRegions();
-    } else {
-        try {
-            const res = await fetch("geo_data.json");
-            GEO_DATA = await res.json();
-            populateRegions();
-        } catch (err) {
-            console.error("Geo data failed:", err);
-            showAlert("error", "⚠️ Could not load delivery regions.");
-        }
-    }
+  // Render the order summary now that cartItems is ready
+  renderOrderSummary();
 
-    renderOrderSummary();
-    await loadCouponsFromFirestore();
+  // Load coupons (background)
+  await loadCouponsFromFirestore();
 });
 
+
+
+
+
+/* ---------------- Dynamic Totals & Summary ---------------- */
+
+// base delivery fees by region (you can adjust values)
 const DELIVERY_FEES_BY_REGION = {
-    Dhaka: 80, Chattogram: 100, Rajshahi: 120, Khulna: 120,
-    Sylhet: 110, Rangpur: 130, Barishal: 130, Mymensingh: 120,
+  Dhaka: 80,
+  Chattogram: 100,
+  Rajshahi: 120,
+  Khulna: 120,
+  Sylhet: 110,
+  Rangpur: 130,
+  Barishal: 130,
+  Mymensingh: 120,
 };
 
+// get delivery fee based on selected region
 function getDeliveryFee() {
-    const region = regionEl.value;
-    return DELIVERY_FEES_BY_REGION[region] || 80;
+  const region = regionEl.value;
+  return DELIVERY_FEES_BY_REGION[region] || 80; // default 80
 }
 
+// compute all totals
 function calculateTotals() {
-    const productTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0), 0);
-    const deliveryFee = getDeliveryFee();
-    const discount = currentDiscount || 0;
-    const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
-    return { productTotal, deliveryFee, discount, grandTotal };
+  const productTotal = cartItems.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+    0
+  );
+  const deliveryFee = getDeliveryFee();
+  const discount = currentDiscount || 0;
+  const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
+  return { productTotal, deliveryFee, discount, grandTotal };
 }
 
+// render summary table
 function renderOrderSummary() {
-    if (!cartItems.length) {
-        cartSummaryBody.innerHTML = '<tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is empty.</td></tr>';
-        priceSummaryFoot.innerHTML = "";
-        return;
-    }
+  if (!cartItems.length) {
+    cartSummaryBody.innerHTML =
+      '<tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is empty.</td></tr>';
+    priceSummaryFoot.innerHTML = "";
+    return;
+  }
 
-    cartSummaryBody.innerHTML = cartItems.map(i => `<tr><td>${i.name} <span class="text-xs text-gray-500">x${i.qty}</span></td><td class="text-right">৳${(i.price * i.qty).toFixed(0)}</td></tr>`).join("");
+  cartSummaryBody.innerHTML = cartItems
+    .map(
+      (i) => `
+      <tr>
+        <td>${i.name} <span class="text-xs text-gray-500">x${i.qty}</span></td>
+        <td class="text-right">৳${(i.price * i.qty).toFixed(0)}</td>
+      </tr>`
+    )
+    .join("");
 
-    const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
+  const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
 
-    priceSummaryFoot.innerHTML = `
-        <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
-        <tr><td class="text-gray-600">Delivery Fee</td><td class="text-right text-gray-600">৳${deliveryFee.toFixed(0)}</td></tr>
-        <tr><td colspan="2" class="text-xs text-gray-500 italic pb-2">⚠️ Delivery charge is set by <b>Pathao Courier Service</b>. We are not responsible for this fee.</td></tr>
-        <tr><td class="text-green-600">Discount</td><td class="text-right text-green-600">-৳${discount.toFixed(0)}</td></tr>
-        <tr class="total-row-summary"><td>Grand Total</td><td class="text-right font-bold text-orange-600">৳${grandTotal.toFixed(0)}</td></tr>
-    `;
+  // ✅ Includes Pathao courier service notice
+  priceSummaryFoot.innerHTML = `
+    <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
+    <tr>
+      <td class="text-gray-600">Delivery Fee</td>
+      <td class="text-right text-gray-600">৳${deliveryFee.toFixed(0)}</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="text-xs text-gray-500 italic pb-2">
+        ⚠️ Delivery charge is set by <b>Pathao Courier Service</b>. We are not responsible for this fee.
+      </td>
+    </tr>
+    <tr><td class="text-green-600">Discount</td><td class="text-right text-green-600">-৳${discount.toFixed(0)}</td></tr>
+    <tr class="total-row-summary"><td>Grand Total</td><td class="text-right font-bold text-orange-600">৳${grandTotal.toFixed(0)}</td></tr>
+  `;
 }
 
-function handleChannelSelection(e) {
-    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b => b.classList.remove('active'));
+/* --- Update totals whenever region or coupon changes --- */
+regionEl.addEventListener("change", renderOrderSummary);
+districtEl.addEventListener("change", renderOrderSummary);
+upazilaEl.addEventListener("change", renderOrderSummary);
+couponInput.addEventListener("input", () => {
+  // reset displayed coupon message when user edits
+  couponStatus.textContent = "";
+});
+
+
+
+/* ---------------- Payment Switching ---------------- */
+document.querySelectorAll('.select-btn[data-method]').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    document.querySelectorAll('.select-btn[data-method]').forEach(b=>b.classList.remove('active'));
     e.currentTarget.classList.add('active');
-    const ch = e.currentTarget.getAttribute('data-channel');
-    document.getElementById('payment-channel').value = ch;
-    showAlert("success", `💳 ${ch} selected for online payment`);
+    const method=e.currentTarget.getAttribute('data-method');
+    document.getElementById('payment-method').value=method;
+    const online=document.getElementById('online-payment-fields');
+    const show=method==="Online Payment";
+    online.classList.toggle('hidden',!show);
+    document.getElementById('sender-number').required=show;
+    document.getElementById('transaction-id').required=show;
+  });
+});
+
+document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b=>b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const ch=e.currentTarget.getAttribute('data-channel');
+    document.getElementById('payment-channel').value=ch;
+    showAlert("success",`💳 ${ch} selected for online payment`);
+  });
+});
+
+/* ---------------- Place Order ---------------- */
+document.getElementById("order-form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (!cartItems.length) return showAlert("error","Your cart is empty!");
+
+  const orderId = "WF" + Date.now();
+  const order = {
+    orderId,
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    region: regionEl.value,
+    district: districtEl.value,
+    upazila: upazilaEl.value,
+    address: document.getElementById("address").value,
+    paymentMethod: document.getElementById("payment-method").value,
+    paymentChannel: document.getElementById("payment-channel").value,
+    senderNumber: document.getElementById("sender-number").value,
+    transactionId: document.getElementById("transaction-id").value,
+    cartItems,
+    discount: currentDiscount,
+    timestamp: new Date().toISOString(),
+  };
+
+  placeOrderBtn.disabled = true;
+  placeOrderBtn.textContent = "Processing...";
+
+  // send to Google Sheet
+  const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
+  try {
+    await fetch(scriptURL,{method:"POST",body:JSON.stringify(order),headers:{"Content-Type":"application/json"}});
+  } catch(e){ console.error("Sheet send failed",e); }
+
+  // save to Firestore
+  try {
+    await setDoc(doc(db,"orders",orderId),order);
+    
+ // ✅ Update coupon usage correctly (increase 'used', do not reduce 'usageLimit')
+if (appliedCoupon && appliedCoupon.code) {
+  try {
+    const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
+    const snap = await getDoc(couponRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      const updatedCodes = (data.validCodes || []).map(c => {
+        if (c.code === appliedCoupon.code) {
+          const newUsed = (c.used || 0) + 1;
+          return { ...c, used: newUsed };
+        }
+        return c;
+      });
+
+      await setDoc(couponRef, { ...data, validCodes: updatedCodes });
+      console.log(`🔥 Coupon ${appliedCoupon.code} used count increased.`);
+    }
+  } catch (err) {
+    console.error("❌ Failed to update coupon usage:", err);
+  }
 }
 
-document.querySelectorAll('.select-btn[data-method]').forEach(btn => {
-    btn.addEventListener('click', e => {
-        document.querySelectorAll('.select-btn[data-method]').forEach(b => b.classList.remove('active'));
-        e.currentTarget.classList.add('active');
-        const method = e.currentTarget.getAttribute('data-method');
-        document.getElementById('payment-method').value = method;
-        const online = document.getElementById('online-payment-fields');
-        const show = method === "Online Payment";
-        online.classList.toggle('hidden', !show);
-        document.getElementById('sender-number').required = show;
-        document.getElementById('transaction-id').required = show;
-        if (!show) {
-            document.getElementById('payment-channel').value = '';
-            document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b => b.classList.remove('active'));
-        }
-    });
+
+localStorage.removeItem(CART_STORAGE_KEY);
+showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
+setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
+    localStorage.removeItem(CART_STORAGE_KEY);
+    showAlert("success",`✅ Order placed successfully! ID: ${orderId}`);
+    setTimeout(()=>window.location.href=SUCCESS_REDIRECT_URL,2000);
+  } catch(err){
+    console.error(err);
+    showAlert("error","❌ Failed to save order!");
+  } finally {
+    placeOrderBtn.disabled=false;
+    placeOrderBtn.textContent="Place Order";
+  }
 });
 
-document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn => {
-    btn.addEventListener('click', handleChannelSelection);
-});
-
-document.getElementById("order-form").addEventListener("submit", async ev => {
-    ev.preventDefault();
-
-    if (!cartItems.length) return showAlert("error", "Your cart is empty!");
-
-    const orderId = "WF" + Date.now();
-    const { grandTotal } = calculateTotals();
-    
-    const name = document.getElementById("name").value;
-    const phone = document.getElementById("phone").value;
-    const address = document.getElementById("address").value;
-    const paymentMethod = document.getElementById("payment-method").value;
-    const isOnline = paymentMethod === "Online Payment";
-    
-    // ✅ FIXED: Better validation for online payment fields
-    if (isOnline) {
-        const channel = document.getElementById("payment-channel").value;
-        const senderNum = document.getElementById("sender-number").value;
-        const transactionId = document.getElementById("transaction-id").value;
-        
-        if (!channel) {
-            return showAlert("error", "Please select Bkash or Nagad!");
-        }
-        if (!senderNum || senderNum.trim() === "") {
-            return showAlert("error", "Please enter your mobile number!");
-        }
-        if (!transactionId || transactionId.trim() === "") {
-            return showAlert("error", "Please enter the transaction ID!");
-        }
-    }
-    
-    const order = {
-        orderId, name, phone,
-        region: regionEl.value,
-        district: districtEl.value,
-        upazila: upazilaEl.value,
-        address, paymentMethod,
-        paymentChannel: isOnline ? document.getElementById("payment-channel").value : null,
-        senderNumber: isOnline ? document.getElementById("sender-number").value : null,
-        transactionId: isOnline ? document.getElementById("transaction-id").value : null,
-        cartItems,
-        grandTotal: grandTotal,
-        discount: currentDiscount,
-        appliedCouponCode: appliedCoupon ? appliedCoupon.code : null,
-        timestamp: new Date().toISOString(),
-        status: "Pending"
-    };
-
-    placeOrderBtn.disabled = true;
-    placeOrderBtn.textContent = "Processing...";
-
-    // Send to Google Sheet (optional, continue even if fails)
-    const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
-    try {
-        await fetch(scriptURL, { method: "POST", body: JSON.stringify(order), headers: { "Content-Type": "application/json" } });
-    } catch (e) {
-        console.error("Sheet send failed (non-critical):", e);
-    }
-
-    // ✅ FIXED: Better error handling with specific messages
-    try {
-      await setDoc(doc(db, "Orders", orderId), order);
-        console.log("✅ Order saved to Firebase");
-        
-        // Track coupon usage
-        if (appliedCoupon && appliedCoupon.code) {
-            try {
-                const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
-                await runTransaction(db, async (transaction) => {
-                    const couponDoc = await transaction.get(couponRef);
-                    if (!couponDoc.exists()) {
-                        throw "Coupon document does not exist!";
-                    }
-                    
-                    const data = couponDoc.data();
-                    const couponCodeUpper = appliedCoupon.code.toUpperCase();
-                    
-                    const updatedCodes = (data.validCodes || []).map(c => {
-                        if (c.code.toUpperCase() === couponCodeUpper) {
-                            const totalLimit = Number(c.usageLimit) || 0;
-                            const usedCount = Number(c.used) || 0;
-                            
-                            if (totalLimit === 0 || usedCount < totalLimit) {
-                                return { ...c, used: usedCount + 1 };
-                            }
-                        }
-                        return c;
-                    });
-                    
-                    transaction.update(couponRef, { validCodes: updatedCodes });
-                });
-                console.log("✅ Coupon usage tracked successfully");
-            } catch (err) {
-                console.error("❌ Failed to track coupon usage (non-critical):", err);
-            }
-        }
-
-        localStorage.removeItem(CART_STORAGE_KEY);
-        showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
-        setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
-    
-    } catch (err) {
-        console.error("Firebase error:", err);
-        
-        // ✅ FIXED: Show specific error message
-        if (err.code === 'permission-denied') {
-            showAlert("error", "❌ Permission denied! Please check Firebase security rules.");
-        } else if (err.code === 'unavailable') {
-            showAlert("error", "❌ Cannot connect to Firebase. Please check your internet connection.");
-        } else {
-            showAlert("error", `❌ Failed to save order: ${err.message || 'Unknown error'}`);
-        }
-    } finally {
-        placeOrderBtn.disabled = false;
-        placeOrderBtn.textContent = "Place Order";
-    }
-});
-
+/* ---------------- Cancel Order ---------------- */
 cancelOrderBtn.addEventListener("click",()=>{
-    if(confirm("Are you sure you want to cancel this order?")){
-        showAlert("error","❌ Order cancelled – returning to cart...");
-        setTimeout(()=>window.location.href="cart.html",1500);
-    }
+  if(confirm("Are you sure you want to cancel this order?")){
+    showAlert("error","❌ Order cancelled — returning to cart...");
+    setTimeout(()=>window.location.href="cart.html",1500);
+  }
 });
 </script>
+
 
 </body>
 </html>
