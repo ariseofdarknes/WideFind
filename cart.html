@@ -6,6 +6,35 @@
     <title>My Shopping Cart</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #ff6600;
+            background: white;
+            color: #ff6600;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .qty-btn:hover {
+            background: #ff6600;
+            color: white;
+        }
+        .qty-display {
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
@@ -37,17 +66,15 @@
 <script>
     const CART_STORAGE_KEY = 'widefindCart';
 
-
-function getValidImageURL(url) {
-    if (!url) return "images/placeholder.png"; // fallback if empty
-    if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-        const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-        if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+    function getValidImageURL(url) {
+        if (!url) return "images/placeholder.png";
+        if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+            const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+            if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+        }
+        return url;
     }
-    return url;
-}
 
-    // PRODUCT_DB here is used only to surface an image if item doesn't have one.
     const PRODUCT_DB = {
         'TSHIRT-001': { name: "Classic T-Shirt 1", images: ["https://picsum.photos/id/1/600/600"] },
         'SUNGLASS-001': { name: "Aviator Sunglass 1", images: ["https://picsum.photos/id/4/600/600"] },
@@ -55,7 +82,6 @@ function getValidImageURL(url) {
         'EARBUD-002': { name: "Wireless Earbuds 1", images: ["https://picsum.photos/id/11/600/600"] },
         'MUG-003': { name: "Ceramic Mug 1", images: ["https://picsum.photos/id/21/600/600"] },
         'TSHIRT-002': { name: "Graphic T-Shirt 2", images: ["https://picsum.photos/id/51/600/600"] }
-        // Add more if you want
     };
 
     function getCart() {
@@ -81,6 +107,16 @@ function getValidImageURL(url) {
         let cart = getCart();
         cart = cart.filter(item => item.itemId !== itemId);
         saveCart(cart);
+    }
+
+    // ✅ NEW: Update quantity function
+    function updateQuantity(itemId, change) {
+        let cart = getCart();
+        const item = cart.find(i => i.itemId === itemId);
+        if (item) {
+            item.qty = Math.max(1, (item.qty || 1) + change); // Minimum 1
+            saveCart(cart);
+        }
     }
 
     function renderCart() {
@@ -110,11 +146,11 @@ function getValidImageURL(url) {
         cart.forEach(item => {
             const product = PRODUCT_DB[item.sku] || {};
             
-          const image = getValidImageURL(
-  item.image || (product.images && product.images[0]) || 'https://placehold.co/120x120?text=No+Image'
-);
+            const image = getValidImageURL(
+                item.image || (product.images && product.images[0]) || 'https://placehold.co/120x120?text=No+Image'
+            );
 
-            const itemSubtotal = (Number(item.price) || 0) * (Number(item.qty) || 0); // USE item.price (sale price)
+            const itemSubtotal = (Number(item.price) || 0) * (Number(item.qty) || 0);
             totalSubtotal += itemSubtotal;
             totalQty += Number(item.qty) || 0;
             
@@ -125,8 +161,13 @@ function getValidImageURL(url) {
                 <img src="${image}" alt="${item.name}">
                 <div class="item-details">
                     <h4>${item.name}</h4>
-                    <p>Qty: ${item.qty} | Unit Price: ৳${Number(item.price||0).toFixed(0)}</p>
+                    <p>Unit Price: ৳${Number(item.price||0).toFixed(0)}</p>
                     ${item.size ? `<p>Size: ${item.size}</p>` : ''}
+                    <div class="qty-controls">
+                        <button class="qty-btn qty-minus" data-item-id="${item.itemId}">−</button>
+                        <span class="qty-display">${item.qty}</span>
+                        <button class="qty-btn qty-plus" data-item-id="${item.itemId}">+</button>
+                    </div>
                 </div>
                 <div class="item-price">
                     ৳${itemSubtotal.toFixed(0)}
@@ -141,10 +182,28 @@ function getValidImageURL(url) {
         countDisplay.textContent = totalQty;
         subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
         
+        // ✅ Add event listeners for quantity controls
+        listContainer.querySelectorAll('.qty-minus').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const itemId = e.target.getAttribute('data-item-id');
+                updateQuantity(itemId, -1);
+            });
+        });
+
+        listContainer.querySelectorAll('.qty-plus').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const itemId = e.target.getAttribute('data-item-id');
+                updateQuantity(itemId, 1);
+            });
+        });
+
+        // Remove button
         listContainer.querySelectorAll('.item-remove button').forEach(button => {
             button.addEventListener('click', (e) => {
                 const itemId = e.target.getAttribute('data-item-id');
-                removeItem(itemId);
+                if (confirm('Remove this item from cart?')) {
+                    removeItem(itemId);
+                }
             });
         });
     }
