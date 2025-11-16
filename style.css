@@ -696,49 +696,26 @@ body {
 /* ========================================= */
 
 .logo-gold {
-    font-family: "Poppins", sans-serif;
+    font-family: 'Poppins', sans-serif;
+    font-size: 34px; /* slightly bigger */
     font-weight: 700;
-    font-size: 32px;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    text-decoration: none;
-    display: inline-block;
-
-    /* Royal metallic gradient */
-    background: linear-gradient(
-        92deg,
-        #b48c2a 0%,
-        #f3e6b3 25%,
-        #d4af37 50%,
-        #f3e6b3 75%,
-        #b48c2a 100%
-    );
-    background-size: 300%;
+    background: linear-gradient(90deg, #c9a43c, #fff4b2, #d4b25a, #aa832b, #fff4b2);
     -webkit-background-clip: text;
-    color: transparent;
-
-    /* Soft royal glow + premium chrome depth */
-    text-shadow:
-        0px 2px 3px rgba(0,0,0,0.25),
-        0px 4px 6px rgba(212,175,55,0.25);
-
-    /* Smooth metallic shine movement */
-    animation: royalGoldShine 5s ease-in-out infinite;
-    transition: transform .35s ease, text-shadow .35s ease;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background-size: 300%;
+    animation: goldshine 3.5s linear infinite;
+    filter: drop-shadow(0px 1px 2px rgba(255, 224, 130, 0.5));
 }
 
-.logo-gold:hover {
-    transform: scale(1.05);
-    text-shadow:
-        0px 2px 4px rgba(0,0,0,0.35),
-        0px 5px 10px rgba(212,175,55,0.35),
-        0px 7px 15px rgba(255,235,180,0.30);
+@keyframes goldshine {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 300%;
+    }
 }
 
-/* Smooth royal shine wave */
-@keyframes royalGoldShine {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
 
