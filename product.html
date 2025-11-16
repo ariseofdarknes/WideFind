@@ -330,8 +330,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
 <script type="module">
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const db = getFirestore(); // 🔥 this line FIXES the "db is not defined" error
+const appId = "WideFind";
 
 async function loadRandomProductsFromFirestore() {
     try {
@@ -351,6 +356,7 @@ async function loadRandomProductsFromFirestore() {
             });
         });
 
+        // Shuffle and pick random 18
         allProducts = allProducts.sort(() => Math.random() - 0.5).slice(0, 18);
 
         const container = document.getElementById("randomProducts");
@@ -388,3 +394,4 @@ loadRandomProductsFromFirestore();
 
 </body>
 </html>
+
