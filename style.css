@@ -690,3 +690,31 @@ body {
     border-radius: 5px; 
     font-weight: bold;
 }
+
+/* ========================================= */
+/* === PREMIUM GOLD LOGO STYLE (WideFind) === */
+/* ========================================= */
+
+.logo-gold {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #caa94a, #ffeb7b, #d4b85f, #b29130);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background-size: 250%;
+    animation: goldshine 3s linear infinite;
+    text-decoration: none;
+}
+
+@keyframes goldshine {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 250%;
+    }
+}
+
