@@ -111,9 +111,11 @@
 <!-- ================= Related Random Products ================== -->
 <div style="max-width:1200px;margin:40px auto;">
   <h2 style="font-size:22px;margin-bottom:15px;">You May Also Like</h2>
-  <div id="randomProducts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;"></div>
-</div>
 
+  <div id="randomProducts" 
+       style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;">
+  </div>
+</div>
 
 
 </main>
@@ -323,45 +325,65 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<script>
-  async function loadRandomProducts() {
+
+
+
+
+
+<script type="module">
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+async function loadRandomProductsFromFirestore() {
     try {
-      const res = await fetch("data/products.json");
-      const products = await res.json();
+        const productsCol = collection(db, `artifacts/${appId}/public/data/products`);
+        const snap = await getDocs(productsCol);
 
-      // Shuffle
-      const shuffled = products.sort(() => 0.5 - Math.random());
-      
-      // Pick 4 random items
-      const selected = shuffled.slice(0, 4);
+        let allProducts = [];
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            allProducts.push({
+                id: docSnap.id,
+                name: data.name || "Unknown",
+                price: data.price || 0,
+                image: (Array.isArray(data.images) && data.images[0]) 
+                    ? data.images[0] 
+                    : "https://placehold.co/300"
+            });
+        });
 
-      const container = document.getElementById("randomProducts");
+        allProducts = allProducts.sort(() => Math.random() - 0.5).slice(0, 18);
 
-      selected.forEach(p => {
-        const item = document.createElement("a");
-        item.href = `product.html?id=${p.id}`;
-        item.style = `
-          border:1px solid #ddd; border-radius:8px;padding:10px;
-          background:#fff;text-align:center;text-decoration:none;color:#000;
-          display:block;box-shadow:0 2px 6px rgba(0,0,0,0.1);transition:.3s;
-        `;
-        item.innerHTML = `
-          <img src="${p.image}" alt="${p.name}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
-          <h4 style="font-size:15px;margin:8px 0;">${p.name}</h4>
-          <p style="color:#ff3c00;font-weight:600;">৳${p.price}</p>
-        `;
-        item.onmouseover = () => item.style.transform = "scale(1.03)";
-        item.onmouseout = () => item.style.transform = "scale(1)";
+        const container = document.getElementById("randomProducts");
+        container.innerHTML = "";
 
-        container.appendChild(item);
-      });
-    } catch (err) {
-      console.error("Error loading random products", err);
+        allProducts.forEach(p => {
+            const item = document.createElement("a");
+            item.href = `product.html?id=${p.id}`;
+            item.style = `
+                border:1px solid #ddd; border-radius:8px; padding:10px;
+                background:#fff; text-align:center; text-decoration:none; color:#000;
+                display:block; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition:.3s;
+            `;
+            item.innerHTML = `
+                <img src="${p.image}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
+                <h4 style="font-size:15px;margin:8px 0;">${p.name}</h4>
+                <p style="color:#ff3c00;font-weight:600;">৳${p.price}</p>
+            `;
+            item.onmouseover = () => item.style.transform = "scale(1.03)";
+            item.onmouseout = () => item.style.transform = "scale(1)";
+
+            container.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error("Error loading products:", error);
     }
-  }
+}
 
-  loadRandomProducts();
+loadRandomProductsFromFirestore();
 </script>
+
+
 
 
 </body>
