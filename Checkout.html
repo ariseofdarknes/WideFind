@@ -258,8 +258,10 @@ function computeDiscount(coupon, total) {
     ? Math.round(total * (coupon.amount / 100))
     : coupon.amount;
 }
+
 function applyCouponClientSide(code) {
   couponStatus.textContent = "";
+  couponStatus.style.color = "";              // reset color before doing anything
   const coupon = findMatchingCoupon(code);
   if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
 
@@ -267,7 +269,8 @@ function applyCouponClientSide(code) {
   const limit = Number(coupon.usageLimit) || 0;
   const used = Number(coupon.used) || 0;
   if (limit > 0 && used >= limit) {
-    couponStatus.textContent = `❌ Coupon usage limit reached (${limit})`;
+    couponStatus.textContent = `❌ Coupon fully used — (${limit} total uses reached)`;
+    couponStatus.style.color = "red";
     showAlert("error", "Coupon limit reached / expired");
     appliedCoupon = null;
     currentDiscount = 0;
@@ -275,8 +278,10 @@ function applyCouponClientSide(code) {
   }
 
   // Check allowed products
-  if (!couponAppliesToCart(coupon, cartItems))
-    return (couponStatus.textContent = "Coupon not valid for these items.");
+  if (!couponAppliesToCart(coupon, cartItems)) {
+    couponStatus.textContent = "Coupon not valid for these items.";
+    return;
+  }
 
   const productTotal = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
 
@@ -286,43 +291,38 @@ function applyCouponClientSide(code) {
     showAlert("error", `Minimum ৳${coupon.minSpendRequired} required`);
     appliedCoupon = null;
     currentDiscount = 0;
+    couponStatus.style.color = "red";
     return;
   }
 
   // ✅ APPLY DISCOUNT
   currentDiscount = computeDiscount(coupon, productTotal);
   appliedCoupon = coupon;
+renderOrderSummary();
 
-  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
-  showAlert("success", `Coupon ${coupon.code} applied!`);
+  // 🔢 Calculate remaining uses safely
+  let remaining = limit > 0 ? (limit - used - 1) : null;
+  if (remaining < 0) remaining = 0;
+
+  // 🎨 Show message with remaining uses
+  couponStatus.textContent = remaining !== null
+    ? `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount} (${remaining} uses left)`
+    : `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
+
+  // 🎨 Color code (green if plenty left, red if only 1 or none left)
+  if (remaining !== null) {
+    couponStatus.style.color = remaining <= 1 ? "red" : "green";
+  } else {
+    couponStatus.style.color = "green";
+  }
+
+  // 🚨 Last use warning popup
+  if (remaining === 1) {
+    showAlert("success", `⚠ Last use left for coupon ${coupon.code}!`);
+  } else {
+    showAlert("success", `Coupon ${coupon.code} applied!`);
+  }
 }
-
-applyCouponBtn.addEventListener("click", async () => {
-  applyCouponBtn.disabled = true;
-  applyCouponBtn.innerHTML =
-    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
-       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-     </svg> Applying...`;
-
-  // Refresh coupons from Firestore (in case admin changed them)
-  await loadCouponsFromFirestore();
-
-  const code = couponInput.value.trim();
-
-  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
-  applyCouponClientSide(code);
-
-  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
-  renderOrderSummary();
-
-  // Enable button again after short delay to keep UX smooth
-  setTimeout(() => {
-    applyCouponBtn.disabled = false;
-    applyCouponBtn.textContent = "Apply";
-  }, 1000);
-});
-
 
 
 
@@ -438,10 +438,17 @@ function renderOrderSummary() {
 regionEl.addEventListener("change", renderOrderSummary);
 districtEl.addEventListener("change", renderOrderSummary);
 upazilaEl.addEventListener("change", renderOrderSummary);
+
 couponInput.addEventListener("input", () => {
-  // reset displayed coupon message when user edits
   couponStatus.textContent = "";
+  couponStatus.style.color = "";   // 🔁 reset color
 });
+
+// 👇 ADD HERE
+couponInput.addEventListener("blur", () => {
+  if (appliedCoupon) renderOrderSummary();
+});
+
 
 
 
@@ -591,6 +598,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
