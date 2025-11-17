@@ -486,7 +486,6 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
   ev.preventDefault();
   if (!cartItems.length) return showAlert("error","Your cart is empty!");
 
-  /* 🚫 Coupon re-check safety (min spend protection) */
 /* 🚫 Coupon re-check safety (limit + min spend protection) */
 if (appliedCoupon) {
 
@@ -545,37 +544,41 @@ if (appliedCoupon) {
   try {
     await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
 
-    if (appliedCoupon && appliedCoupon.code) {
-      try {
-        const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
-        const snap = await getDoc(couponRef);
+// ==== Coupon usage update ====
+if (appliedCoupon && appliedCoupon.code) {
+  try {
+    const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
+    const snap = await getDoc(couponRef);
 
-        if (snap.exists()) {
-          const data = snap.data();
-          const updatedCodes = (data.validCodes || []).map(c => {
-            if (c.code === appliedCoupon.code) {
-              const newUsed = (c.used || 0) + 1;
-              return { ...c, used: newUsed };
-            }
-            return c;
-          });
-
-        await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
-
-// 🔄 Update local coupon object so usage reflects immediately
-appliedCoupon.used = (appliedCoupon.used || 0) + 1;
-
-// 🔁 Re-render totals so discount is immediately removed if limit reached
-renderOrderSummary();
-
-console.log(`🔥 Coupon ${appliedCoupon.code} usage updated`);
-
-
+    if (snap.exists()) {
+      const data = snap.data();
+      const updatedCodes = (data.validCodes || []).map(c => {
+        if (c.code.toUpperCase() === appliedCoupon.code.toUpperCase()) {
+          return {
+            ...c,
+            used: Number(c.used || 0) + 1
+          };
         }
-      } catch (err) {
-        console.error("❌ Failed updating coupon usage:", err);
-      }
+        return c;
+      });
+
+      // 🔥 Save back to Firestore
+      await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
+
+      // 🔄 Update local memory
+      appliedCoupon.used = Number(appliedCoupon.used || 0) + 1;
+      console.log("🔥 Usage saved locally:", appliedCoupon.code, appliedCoupon.used);
+
+      // 🔁 Re-fetch from Firestore to confirm
+      await loadCouponsFromFirestore();
+      console.log("📌 Coupons refreshed successfully");
     }
+
+  } catch (err) {
+    console.error("❌ Failed updating coupon usage:", err);
+  }
+}
+
 
     localStorage.removeItem(CART_STORAGE_KEY);
     showAlert("success", `✅ Order placed! ID: ${orderId}`);
@@ -602,6 +605,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
