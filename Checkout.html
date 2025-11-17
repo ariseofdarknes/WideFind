@@ -449,7 +449,11 @@ couponInput.addEventListener("blur", () => {
   if (appliedCoupon) renderOrderSummary();
 });
 
-
+// ✅ ADD THIS BLOCK RIGHT AFTER ↑
+applyCouponBtn.addEventListener("click", () => {
+  const code = couponInput.value.trim();
+  applyCouponClientSide(code);
+});
 
 
 /* ---------------- Payment Switching ---------------- */
@@ -598,6 +602,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
