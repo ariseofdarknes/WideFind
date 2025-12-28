@@ -33,6 +33,89 @@
             align-items: center;
             gap: 15px;
         }
+
+
+/* Modern Add to Cart Alert - Bottom Middle */
+/*.cart-alert {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #000000; /* Professional Black */
+    /*color: #ffffff;
+    padding: 12px 25px;
+    border-radius: 8px;
+    border-bottom: 4px solid #ff0000; /* Professional Red Accent */
+  /*  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-weight: 600;
+}
+.cart-alert.show {
+    transform: translateX(-50%) translateY(0);
+}
+*/
+/* 1. Make the whole card feel clickable */
+.product-card {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.product-card:hover {
+    transform: translateY(-5px); /* Optional: adds a nice lift effect */
+}
+
+/* 2. Style the 'Add to Cart' button (replaces old View Details) */
+.product-card .btn-buy {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #ff6600; /* Your brand orange */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+    
+    /* CRITICAL: This ensures the button works even though the card is clickable */
+    position: relative; 
+    z-index: 10; 
+}
+
+.product-card .btn-buy:hover {
+    background-color: #e65c00; /* Darker orange on hover */
+}
+
+/* 3. High-Quality Modern Alert (Red & Black) */
+.cart-alert {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1a1a1a; /* Sleek Black */
+    color: #ffffff;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border-bottom: 4px solid #ff0000; /* Professional Red */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    font-size: 15px;
+}
+
+.cart-alert.show {
+    transform: translateX(-50%) translateY(0);
+}
+      
     </style>
 </head>
 <body>
@@ -117,6 +200,55 @@
         }
     }
 
+// 1. High Quality Modern Notification Function
+function showCartNotification(message) {
+    let alertBox = document.getElementById('custom-cart-alert');
+    if (!alertBox) {
+        alertBox = document.createElement('div');
+        alertBox.id = 'custom-cart-alert';
+        alertBox.className = 'cart-alert';
+        alertBox.innerHTML = `<span>🛒</span> <span id="alert-msg"></span>`;
+        document.body.appendChild(alertBox);
+    }
+    document.getElementById('alert-msg').textContent = message;
+    alertBox.classList.add('show');
+    setTimeout(() => alertBox.classList.remove('show'), 3000);
+}
+
+// 2. Direct Add to Cart Function (without leaving page)
+window.addToCartDirect = function(event, productDataEncoded) {
+    event.stopPropagation(); // CRITICAL: Stops the card click from opening product details
+    
+    try {
+        const product = JSON.parse(decodeURIComponent(productDataEncoded));
+        let cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
+        
+        const itemId = `${product.id}-std`;
+        const existingItem = cart.find(i => i.itemId === itemId);
+
+        if (existingItem) {
+            existingItem.qty = (Number(existingItem.qty) || 0) + 1;
+        } else {
+            cart.push({
+                itemId: itemId,
+                sku: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                qty: 1,
+                size: "Standard"
+            });
+        }
+
+        localStorage.setItem('widefindCart', JSON.stringify(cart));
+        updateCartCount(); // Refresh the header badge
+        showCartNotification(`${product.name} added to cart!`);
+    } catch (e) {
+        console.error("Cart error:", e);
+    }
+};
+
+    
     // Load site settings (categories, banners)
     async function loadSiteSettings() {
         try {
@@ -200,8 +332,8 @@
                 return;
             }
 
-            products.forEach(product => {
-                // Calculate discount percentage for display
+     products.forEach(product => {
+                // 1. Calculate discount percentage (FROM OLD CODE)
                 let displayPercent = 0;
                 if (product.discountPercent && Number(product.discountPercent) > 0) {
                     displayPercent = Math.round(Number(product.discountPercent));
@@ -209,7 +341,7 @@
                     displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
                 }
 
-                // Get first image
+                // 2. Get first image (FROM OLD CODE)
                 let firstImage = '';
                 if (Array.isArray(product.images) && product.images.length > 0) {
                     firstImage = product.images[0];
@@ -217,17 +349,30 @@
                     firstImage = product.images.split(',')[0].trim();
                 }
 
+                // 3. Encode data for Add to Cart (NEW LOGIC)
+                const prodInfo = encodeURIComponent(JSON.stringify({
+                    id: product.id,
+                    name: product.name || '',
+                    price: product.price || 0,
+                    image: typeof getValidImageURL === 'function' ? getValidImageURL(firstImage) : firstImage
+                }));
+
+                // 4. Create the Card
                 const card = document.createElement("div");
                 card.className = "product-card";
+                
+                // ACTION: Clicking the card opens details (NEW LOGIC)
+                card.onclick = () => { window.location.href = `product.html?id=${product.id}`; };
+
                 card.innerHTML = `
-                    <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
+                    <img src="${typeof getValidImageURL === 'function' ? getValidImageURL(firstImage) : firstImage}" alt="${product.name || 'Product'}">
                     <h3 title="${product.name || ''}">${product.name || ''}</h3>
                     <div class="price-container">
                         <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
                         ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
                         ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
                     </div>
-                    <a href="product.html?id=${product.id}" class="btn-buy">View Details</a>
+                    <button onclick="addToCartDirect(event, '${prodInfo}')" class="btn-buy">Add to Cart</button>
                 `;
                 container.appendChild(card);
             });
@@ -297,6 +442,7 @@
 
 </body>
 </html>
+
 
 
 
