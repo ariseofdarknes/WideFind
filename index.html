@@ -310,9 +310,9 @@ slide.appendChild(imgElement);
             else if (typeof product.images === 'string' && product.images.trim()) firstImage = product.images.split(',')[0].trim();
             firstImage = getValidImageURL(firstImage);
 
-            const card = document.createElement("div");
-            card.className = "product-card";
-         card.innerHTML = `
+         const card = document.createElement("div");
+card.className = "product-card";
+card.innerHTML = `
     <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
         <img src="${firstImage}" alt="${product.name}">
         <h3 title="${product.name}">${product.name}</h3>
@@ -368,6 +368,7 @@ slide.appendChild(imgElement);
 
 </body>
 </html>
+
 
 
 
