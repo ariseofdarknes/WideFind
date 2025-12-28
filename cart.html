@@ -64,101 +64,155 @@
     </main>
 
 <script>
-const CART_STORAGE_KEY = 'widefindCart';
+    const CART_STORAGE_KEY = 'widefindCart';
 
-// Helper to handle image URLs
-function getValidImageURL(url) {
-    if (!url) return "https://placehold.co/120x120?text=No+Image";
-    return url;
-}
-
-function getCart() {
-    const cartString = localStorage.getItem(CART_STORAGE_KEY);
-    return cartString ? JSON.parse(cartString) : [];
-}
-
-// Fixed Global Remove Function
-window.removeItem = function(itemId) {
-    let cart = getCart();
-    cart = cart.filter(item => item.itemId === itemId);
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-    renderCart();
-};
-
-// Fixed Global Quantity Function
-window.updateQuantity = function(itemId, change) {
-    let cart = getCart();
-    const item = cart.find(i => i.itemId === itemId);
-    if (item) {
-        let newQty = (parseInt(item.qty) || 1) + change;
-        if (newQty < 1) return; // Prevent 0 or negative
-        item.qty = newQty;
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        renderCart();
-    }
-};
-
-function renderCart() {
-    const cart = getCart();
-    const listContainer = document.getElementById('cart-items-list');
-    const countDisplay = document.getElementById('cart-item-count');
-    const subtotalDisplay = document.getElementById('cart-subtotal');
-    const emptyMessage = document.getElementById('cart-empty-message');
-    const actions = document.querySelector('.cart-actions');
-    
-    listContainer.innerHTML = '';
-    
-    if (cart.length === 0) {
-        countDisplay.textContent = '0';
-        subtotalDisplay.textContent = '৳0';
-        emptyMessage.style.display = 'block';
-        if (actions) actions.style.display = 'none';
-        return;
+    function getValidImageURL(url) {
+        if (!url) return "images/placeholder.png";
+        if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+            const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+            if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+        }
+        return url;
     }
 
-    emptyMessage.style.display = 'none';
-    if (actions) actions.style.display = 'flex';
+    const PRODUCT_DB = {
+        'TSHIRT-001': { name: "Classic T-Shirt 1", images: ["https://picsum.photos/id/1/600/600"] },
+        'SUNGLASS-001': { name: "Aviator Sunglass 1", images: ["https://picsum.photos/id/4/600/600"] },
+        'WATCH-001': { name: "Smart Watch 1", images: ["https://picsum.photos/id/7/600/600"] },
+        'EARBUD-002': { name: "Wireless Earbuds 1", images: ["https://picsum.photos/id/11/600/600"] },
+        'MUG-003': { name: "Ceramic Mug 1", images: ["https://picsum.photos/id/21/600/600"] },
+        'TSHIRT-002': { name: "Graphic T-Shirt 2", images: ["https://picsum.photos/id/51/600/600"] }
+    };
 
-    let totalSubtotal = 0;
-    let totalQty = 0;
+    function getCart() {
+        try {
+            const cartString = localStorage.getItem(CART_STORAGE_KEY);
+            return cartString ? JSON.parse(cartString) : [];
+        } catch (e) {
+            console.error("Error reading cart from localStorage:", e);
+            return [];
+        }
+    }
 
-    cart.forEach(item => {
-        const cleanPrice = Number(String(item.price).replace(/[^0-9.-]+/g, "")) || 0;
-        const itemQty = parseInt(item.qty) || 1;
-        const itemSubtotal = cleanPrice * itemQty;
-        totalSubtotal += itemSubtotal;
-        totalQty += itemQty;
+    function saveCart(cart) {
+        try {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            renderCart();
+        } catch (e) {
+            console.error("Error saving cart to localStorage:", e);
+        }
+    }
+    
+    function removeItem(itemId) {
+        let cart = getCart();
+        cart = cart.filter(item => item.itemId !== itemId);
+        saveCart(cart);
+    }
 
-        const itemElement = document.createElement('div');
-        itemElement.classList.add('cart-item');
-        itemElement.innerHTML = `
-            <img src="${getValidImageURL(item.image)}" alt="${item.name}">
-            <div class="item-details">
-                <h4>${item.name}</h4>
-                <p>Unit Price: ৳${cleanPrice}</p>
-                <div class="qty-controls">
-                    <button class="qty-btn" onclick="updateQuantity('${item.itemId}', -1)">−</button>
-                    <span class="qty-display">${itemQty}</span>
-                    <button class="qty-btn" onclick="updateQuantity('${item.itemId}', 1)">+</button>
+    // ✅ NEW: Update quantity function
+    function updateQuantity(itemId, change) {
+        let cart = getCart();
+        const item = cart.find(i => i.itemId === itemId);
+        if (item) {
+            item.qty = Math.max(1, (item.qty || 1) + change); // Minimum 1
+            saveCart(cart);
+        }
+    }
+
+    function renderCart() {
+        const cart = getCart();
+        const listContainer = document.getElementById('cart-items-list');
+        const countDisplay = document.getElementById('cart-item-count');
+        const subtotalDisplay = document.getElementById('cart-subtotal');
+        const emptyMessage = document.getElementById('cart-empty-message');
+        const actions = document.querySelector('.cart-actions');
+        
+        listContainer.innerHTML = '';
+        
+        if (cart.length === 0) {
+            countDisplay.textContent = '0';
+            subtotalDisplay.textContent = '৳0';
+            emptyMessage.style.display = 'block';
+            if (actions) actions.style.display = 'none';
+            return;
+        }
+
+        emptyMessage.style.display = 'none';
+        if (actions) actions.style.display = 'flex';
+
+        let totalSubtotal = 0;
+        let totalQty = 0;
+
+        cart.forEach(item => {
+            const product = PRODUCT_DB[item.sku] || {};
+            
+            const image = getValidImageURL(
+                item.image || (product.images && product.images[0]) || 'https://placehold.co/120x120?text=No+Image'
+            );
+
+            const itemSubtotal = (Number(item.price) || 0) * (Number(item.qty) || 0);
+            totalSubtotal += itemSubtotal;
+            totalQty += Number(item.qty) || 0;
+            
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('cart-item');
+            
+            itemElement.innerHTML = `
+                <img src="${image}" alt="${item.name}">
+                <div class="item-details">
+                    <h4>${item.name}</h4>
+                    <p>Unit Price: ৳${Number(item.price||0).toFixed(0)}</p>
+                    ${item.size ? `<p>Size: ${item.size}</p>` : ''}
+                    <div class="qty-controls">
+                        <button class="qty-btn qty-minus" data-item-id="${item.itemId}">−</button>
+                        <span class="qty-display">${item.qty}</span>
+                        <button class="qty-btn qty-plus" data-item-id="${item.itemId}">+</button>
+                    </div>
                 </div>
-            </div>
-            <div class="item-price">৳${itemSubtotal}</div>
-            <div class="item-remove">
-                <button onclick="removeItem('${item.itemId}')">✕</button>
-            </div>
-        `;
-        listContainer.appendChild(itemElement);
+                <div class="item-price">
+                    ৳${itemSubtotal.toFixed(0)}
+                </div>
+                <div class="item-remove">
+                    <button data-item-id="${item.itemId}" title="Remove Item">✕</button>
+                </div>
+            `;
+            listContainer.appendChild(itemElement);
+        });
+
+        countDisplay.textContent = totalQty;
+        subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
+        
+        // ✅ Add event listeners for quantity controls
+        listContainer.querySelectorAll('.qty-minus').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const itemId = e.target.getAttribute('data-item-id');
+                updateQuantity(itemId, -1);
+            });
+        });
+
+        listContainer.querySelectorAll('.qty-plus').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const itemId = e.target.getAttribute('data-item-id');
+                updateQuantity(itemId, 1);
+            });
+        });
+
+        // Remove button
+        listContainer.querySelectorAll('.item-remove button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const itemId = e.target.getAttribute('data-item-id');
+                if (confirm('Remove this item from cart?')) {
+                    removeItem(itemId);
+                }
+            });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderCart();
     });
-
-    countDisplay.textContent = totalQty;
-    subtotalDisplay.textContent = `৳${totalSubtotal}`;
-}
-
-document.addEventListener("DOMContentLoaded", renderCart);
 </script>
 
 </body>
 </html>
-
-
 
