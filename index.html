@@ -217,20 +217,43 @@
                     firstImage = product.images.split(',')[0].trim();
                 }
 
-                const card = document.createElement("div");
-                card.className = "product-card";
-                card.innerHTML = `
-                    <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
-                    <h3 title="${product.name || ''}">${product.name || ''}</h3>
-                    <div class="price-container">
-                        <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-                        ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-                        ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-                    </div>
-                    <a href="product.html?id=${product.id}" class="btn-buy">View Details</a>
-                `;
-                container.appendChild(card);
-            });
+
+                
+const card = document.createElement("div");
+card.className = "product-card";
+card.style.cursor = "pointer"; // Makes mouse look like a hand
+
+// 1. We wrap everything inside a link <a> so the WHOLE card is clickable
+card.innerHTML = `
+    <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
+        <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
+        <h3 title="${product.name || ''}">${product.name || ''}</h3>
+        <div class="price-container">
+            <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
+            ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+            ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+        </div>
+    </a>
+    <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
+        Add to Cart
+    </button>
+`;
+
+container.appendChild(card);
+
+// 2. This part makes the "Add to Cart" button work without opening the product page
+document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
+    e.preventDefault(); 
+    e.stopPropagation(); 
+    if (typeof addToCart === "function") {
+        addToCart(product);
+    } else {
+        alert("Item added to cart!"); // Temporary message if you don't have the function yet
+    }
+});
+
+
+                
         } catch (error) {
             console.error('Error loading products:', error);
             container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;padding:40px;">Failed to load products. Please refresh the page.</p>`;
