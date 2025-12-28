@@ -151,105 +151,52 @@ body {
 /* ========================================= */
 /* === HOMEPAGE: PRODUCT GRID (FIXED) === */
 /* ========================================= */
+/* --- IMPROVED PRODUCT GRID --- */
 .product-grid {
     display: grid;
-    /* Large screens: 5 columns */
-    grid-template-columns: repeat(5, 1fr); 
-    gap: 15px; /* Unified gap for all sides */
-    margin: 20px auto;
-    width: 95%; /* Prevents cards from touching screen edges */
-    max-width: 1200px;
+    /* Forces 2 columns on mobile, 5 on desktop */
+    grid-template-columns: repeat(2, 1fr); 
+    /* This gap creates the physical space between items */
+    gap: 12px; 
+    padding: 10px;
+    background-color: #f4f4f4; /* Light gray background makes white cards "pop" */
 }
 
 .product-card {
-    background: #fff;
-    border-radius: 12px; /* Smoother corners */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    padding: 12px; /* Reduced padding for mobile balance */
+    background: #ffffff;
+    border-radius: 10px;
+    /* A light border helps distinguish one item from another */
+    border: 1px solid #e0e0e0; 
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 100%;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #eee; /* Defines the card boundary clearly */
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    /* Shadow adds depth to separate it from the background */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
 }
 
 .product-card img {
     width: 100%;
-    aspect-ratio: 1 / 1; /* Keeps images square and unified */
+    aspect-ratio: 1/1; /* Keeps all images the same size */
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
-.product-card h3 {
-    font-size: 0.9rem; 
-    margin: 10px 0;
-    /* Allows two lines of text then adds ... */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    height: 2.4em; 
-    line-height: 1.2;
-    text-align: left; /* Better for readability */
+/* Ensure the button stays at the bottom and looks distinct */
+.btn-buy {
+    background: #ff6600;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-top: auto; /* Pushes button to the bottom of the card */
 }
 
-/* PRICE DISPLAY */
-.product-card .price-container {
-    margin: 8px 0;
-    display: flex;
-    justify-content: flex-start; /* Aligns price to left */
-    align-items: baseline;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.product-card .sale-price {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #ff6600;
-}
-
-.product-card .original-price {
-    font-size: 0.75rem;
-    color: #999;
-    text-decoration: line-through;
-}
-
-/* RESPONSIVE BREAKPOINTS */
-@media (max-width: 1200px) {
+/* Desktop Adjustment */
+@media (min-width: 992px) {
     .product-grid {
-        grid-template-columns: repeat(4, 1fr); 
-    }
-}
-
-@media (max-width: 992px) {
-    .product-grid {
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .product-grid {
-        /* Force 2 columns with clear horizontal spacing */
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 10px;
-        width: 98%; 
-        padding: 0 5px;
-    }
-    
-    .product-card {
-        padding: 8px; /* Compact padding for small screens */
-    }
-
-    .product-card h3 {
-        font-size: 0.8rem;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
     }
 }
 
@@ -767,6 +714,7 @@ body {
 .product-card a:hover h3 {
     color: #ff6600; /* Title turns orange when you hover over the card */
 }
+
 
 
 
