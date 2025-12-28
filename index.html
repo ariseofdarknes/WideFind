@@ -173,9 +173,11 @@
     }
 
     // Load products
+   // --- UPDATED: Load Products Function ---
     async function loadProducts(category = "popular") {
         const container = document.getElementById('product-list-container');
         const title = document.getElementById('product-section-title');
+        
         container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#999;padding:40px;">Loading products...</p>';
 
         try {
@@ -196,44 +198,58 @@
             container.innerHTML = '';
 
             if (products.length === 0) {
-                container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found in this category.</p>`;
+                container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found.</p>`;
                 return;
             }
 
             products.forEach(product => {
-                // Calculate discount percentage for display
+                // Calculate discount
                 let displayPercent = 0;
-                if (product.discountPercent && Number(product.discountPercent) > 0) {
+                if (product.discountPercent > 0) {
                     displayPercent = Math.round(Number(product.discountPercent));
-                } else if (product.discountAmount && Number(product.originalPrice) > 0) {
-                    displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
                 }
 
-                // Get first image
-                let firstImage = '';
-                if (Array.isArray(product.images) && product.images.length > 0) {
-                    firstImage = product.images[0];
-                } else if (typeof product.images === 'string' && product.images.trim()) {
-                    firstImage = product.images.split(',')[0].trim();
-                }
+                // Get image
+                let firstImage = getValidImageURL(product.images ? (Array.isArray(product.images) ? product.images[0] : product.images) : "");
 
+                // Create the card div
                 const card = document.createElement("div");
                 card.className = "product-card";
+                
+                // --- THE BIG CHANGE IS HERE ---
+                // 1. We wrap the image/title in an <a> tag so clicking the CARD opens details.
+                // 2. We add a separate <button> for adding to cart.
                 card.innerHTML = `
-                    <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
-                    <h3 title="${product.name || ''}">${product.name || ''}</h3>
-                    <div class="price-container">
-                        <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-                        ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-                        ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-                    </div>
-                    <a href="product.html?id=${product.id}" class="btn-buy">View Details</a>
+                    <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
+                        <img src="${firstImage}" alt="${product.name}">
+                        <h3 title="${product.name}">${product.name}</h3>
+                        <div class="price-container">
+                            <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
+                            ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+                            ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+                        </div>
+                    </a>
+                    
+                    <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
+                        Add to Cart
+                    </button>
                 `;
+                
                 container.appendChild(card);
+
+                // Add the "Click" listener to the button we just created
+                document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
+                    // Prevent the click from bubbling up (so it doesn't open the product page)
+                    e.stopPropagation();
+                    e.preventDefault();
+                    // Run our add to cart logic
+                    addToCart(product);
+                });
             });
+
         } catch (error) {
             console.error('Error loading products:', error);
-            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;padding:40px;">Failed to load products. Please refresh the page.</p>`;
+            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;">Failed to load products.</p>`;
         }
     }
 
@@ -297,6 +313,7 @@
 
 </body>
 </html>
+
 
 
 
