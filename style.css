@@ -51,12 +51,26 @@ body {
 /* ========================================= */
 /* === ADS BANNER SLIDER STYLES === */
 /* ========================================= */
+/* ========================================= */
+/* === ADS BANNER SLIDER STYLES (FIXED) === */
+/* ========================================= */
 .ads-banner-container {
     position: relative;
     width: 100%;
-    height: 200px; 
+    /* Mobile Ratio: Standard rectangle */
+    aspect-ratio: 16 / 9; 
     overflow: hidden; 
     margin-bottom: 20px;
+    background-color: #eee;
+    border-radius: 8px;
+}
+
+/* Desktop Fix: Cinematic wide view for computer screens */
+@media (min-width: 768px) {
+    .ads-banner-container {
+        aspect-ratio: 3 / 1; 
+        max-height: 400px;
+    }
 }
 
 .ads-slider {
@@ -72,48 +86,16 @@ body {
     width: 100%;
     height: 100%;
     opacity: 0; 
-    transition: opacity 1.5s ease-in-out; 
+    transition: opacity 1.2s ease-in-out; 
     
-    background-size: cover;
-    background-position: center;
+    background-size: cover; /* Ensures image fills the space */
+    background-position: center; /* Keeps the middle of the ad visible */
     background-repeat: no-repeat;
-    box-shadow: inset 0 0 0 1000px rgba(0,0,0,0.2); 
 }
 
 .banner-slide.active {
     opacity: 1; 
 }
-
-.banner-text-overlay {
-    position: relative;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-.banner-text-overlay p {
-    margin: 0;
-    padding: 10px 20px;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: white;
-    text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
-    background-color: rgba(255, 102, 0, 0.7); 
-    border-radius: 5px;
-}
-
-@media (max-width: 768px) {
-    .ads-banner-container {
-        height: 150px;
-    }
-    .banner-text-overlay p {
-        font-size: 1.1rem;
-        padding: 5px 10px;
-    }
-}
-
 
 /* ========================================= */
 /* === SLIDING CATEGORY MENU STYLES === */
@@ -754,3 +736,4 @@ body {
 .product-card a:hover h3 {
     color: #ff6600; /* Title turns orange when you hover over the card */
 }
+
