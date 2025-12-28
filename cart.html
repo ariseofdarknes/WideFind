@@ -64,114 +64,101 @@
     </main>
 
 <script>
-    const CART_STORAGE_KEY = 'widefindCart';
+const CART_STORAGE_KEY = 'widefindCart';
 
-    // Helper to ensure images look good
-    function getValidImageURL(url) {
-        if (!url) return "https://placehold.co/120x120?text=No+Image";
-        if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-            const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-            if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
-        }
-        return url;
-    }
+// Helper to handle image URLs
+function getValidImageURL(url) {
+    if (!url) return "https://placehold.co/120x120?text=No+Image";
+    return url;
+}
 
-    function getCart() {
-        try {
-            const cartString = localStorage.getItem(CART_STORAGE_KEY);
-            return cartString ? JSON.parse(cartString) : [];
-        } catch (e) {
-            return [];
-        }
-    }
+function getCart() {
+    const cartString = localStorage.getItem(CART_STORAGE_KEY);
+    return cartString ? JSON.parse(cartString) : [];
+}
 
-    function saveCart(cart) {
+// Fixed Global Remove Function
+window.removeItem = function(itemId) {
+    let cart = getCart();
+    cart = cart.filter(item => item.itemId === itemId);
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    renderCart();
+};
+
+// Fixed Global Quantity Function
+window.updateQuantity = function(itemId, change) {
+    let cart = getCart();
+    const item = cart.find(i => i.itemId === itemId);
+    if (item) {
+        let newQty = (parseInt(item.qty) || 1) + change;
+        if (newQty < 1) return; // Prevent 0 or negative
+        item.qty = newQty;
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
         renderCart();
     }
+};
+
+function renderCart() {
+    const cart = getCart();
+    const listContainer = document.getElementById('cart-items-list');
+    const countDisplay = document.getElementById('cart-item-count');
+    const subtotalDisplay = document.getElementById('cart-subtotal');
+    const emptyMessage = document.getElementById('cart-empty-message');
+    const actions = document.querySelector('.cart-actions');
     
-    function removeItem(itemId) {
-        let cart = getCart();
-        cart = cart.filter(item => item.itemId !== itemId);
-        saveCart(cart);
+    listContainer.innerHTML = '';
+    
+    if (cart.length === 0) {
+        countDisplay.textContent = '0';
+        subtotalDisplay.textContent = '৳0';
+        emptyMessage.style.display = 'block';
+        if (actions) actions.style.display = 'none';
+        return;
     }
 
-    function updateQuantity(itemId, change) {
-        let cart = getCart();
-        const item = cart.find(i => i.itemId === itemId);
-        if (item) {
-            item.qty = Math.max(1, (parseInt(item.qty) || 1) + change);
-            saveCart(cart);
-        }
-    }
+    emptyMessage.style.display = 'none';
+    if (actions) actions.style.display = 'flex';
 
-    function renderCart() {
-        const cart = getCart();
-        const listContainer = document.getElementById('cart-items-list');
-        const countDisplay = document.getElementById('cart-item-count');
-        const subtotalDisplay = document.getElementById('cart-subtotal');
-        const emptyMessage = document.getElementById('cart-empty-message');
-        const actions = document.querySelector('.cart-actions');
-        
-        listContainer.innerHTML = '';
-        
-        if (cart.length === 0) {
-            countDisplay.textContent = '0';
-            subtotalDisplay.textContent = '৳0';
-            emptyMessage.style.display = 'block';
-            if (actions) actions.style.display = 'none';
-            return;
-        }
+    let totalSubtotal = 0;
+    let totalQty = 0;
 
-        emptyMessage.style.display = 'none';
-        if (actions) actions.style.display = 'flex';
+    cart.forEach(item => {
+        const cleanPrice = Number(String(item.price).replace(/[^0-9.-]+/g, "")) || 0;
+        const itemQty = parseInt(item.qty) || 1;
+        const itemSubtotal = cleanPrice * itemQty;
+        totalSubtotal += itemSubtotal;
+        totalQty += itemQty;
 
-        let totalSubtotal = 0;
-        let totalQty = 0;
-
-        cart.forEach(item => {
-            // This ensures price is a number even if it contains "৳" or commas
-            const cleanPrice = Number(String(item.price).replace(/[^0-9.-]+/g, "")) || 0;
-            const itemQty = parseInt(item.qty) || 1;
-            const itemSubtotal = cleanPrice * itemQty;
-            
-            totalSubtotal += itemSubtotal;
-            totalQty += itemQty;
-            
-            const image = getValidImageURL(item.image);
-
-            const itemElement = document.createElement('div');
-            itemElement.classList.add('cart-item');
-            itemElement.innerHTML = `
-                <img src="${image}" alt="${item.name}">
-                <div class="item-details">
-                    <h4>${item.name}</h4>
-                    <p>Unit Price: ৳${cleanPrice.toFixed(0)}</p>
-                    ${item.size ? `<p style="font-size:0.8rem; color:#666;">Size: ${item.size}</p>` : ''}
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQuantity('${item.itemId}', -1)">−</button>
-                        <span class="qty-display">${itemQty}</span>
-                        <button class="qty-btn" onclick="updateQuantity('${item.itemId}', 1)">+</button>
-                    </div>
+        const itemElement = document.createElement('div');
+        itemElement.classList.add('cart-item');
+        itemElement.innerHTML = `
+            <img src="${getValidImageURL(item.image)}" alt="${item.name}">
+            <div class="item-details">
+                <h4>${item.name}</h4>
+                <p>Unit Price: ৳${cleanPrice}</p>
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="updateQuantity('${item.itemId}', -1)">−</button>
+                    <span class="qty-display">${itemQty}</span>
+                    <button class="qty-btn" onclick="updateQuantity('${item.itemId}', 1)">+</button>
                 </div>
-                <div class="item-price">
-                    ৳${itemSubtotal.toFixed(0)}
-                </div>
-                <div class="item-remove">
-                    <button onclick="if(confirm('Remove item?')) removeItem('${item.itemId}')">✕</button>
-                </div>
-            `;
-            listContainer.appendChild(itemElement);
-        });
+            </div>
+            <div class="item-price">৳${itemSubtotal}</div>
+            <div class="item-remove">
+                <button onclick="removeItem('${item.itemId}')">✕</button>
+            </div>
+        `;
+        listContainer.appendChild(itemElement);
+    });
 
-        countDisplay.textContent = totalQty;
-        subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
-    }
+    countDisplay.textContent = totalQty;
+    subtotalDisplay.textContent = `৳${totalSubtotal}`;
+}
 
-    document.addEventListener("DOMContentLoaded", renderCart);
+document.addEventListener("DOMContentLoaded", renderCart);
 </script>
 
 </body>
 </html>
+
 
 
