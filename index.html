@@ -265,60 +265,78 @@ slide.appendChild(imgElement);
         } catch (error) { console.error('Error loading settings:', error); }
     }
 
-    async function loadProducts(category = "popular") {
-        const container = document.getElementById('product-list-container');
-        const title = document.getElementById('product-section-title');
-        container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#999;padding:40px;">Loading products...</p>';
-        try {
-            const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
-            const snapshot = await getDocs(productsRef);
-            let products = [];
-            snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+  async function loadProducts(category = "popular") {
+    const container = document.getElementById('product-list-container');
+    const title = document.getElementById('product-section-title');
+    container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#999;padding:40px;">Loading products...</p>';
+    
+    try {
+        const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
+        const snapshot = await getDocs(productsRef);
+        let products = [];
+        snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
 
-            if (category === "popular") {
-                products = products.filter(p => p.isPopular === true);
-                title.textContent = "Popular Products";
-            } else {
-                products = products.filter(p => p.category === category);
-                title.textContent = `${category} Collection`;
-            }
-            container.innerHTML = '';
-            if (products.length === 0) {
-                container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found.</p>`;
-                return;
-            }
-            products.forEach(product => {
-                let displayPercent = 0;
-                if (product.discountPercent > 0) displayPercent = Math.round(Number(product.discountPercent));
-                let firstImage = '';
-                if (Array.isArray(product.images) && product.images.length > 0) firstImage = product.images[0];
-                else if (typeof product.images === 'string' && product.images.trim()) firstImage = product.images.split(',')[0].trim();
-                firstImage = getValidImageURL(firstImage);
+        if (category === "popular") {
+            products = products.filter(p => p.isPopular === true);
+            title.textContent = "Popular Products";
+        } else {
+            products = products.filter(p => p.category === category);
+            title.textContent = `${category} Collection`;
+        }
 
-                const card = document.createElement("div");
-                card.className = "product-card";
-                card.innerHTML = `
-                    <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
-                        <img src="${firstImage}" alt="${product.name}">
-                        <h3 title="${product.name}">${product.name}</h3>
-                        <div class="price-container">
-                            <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-                            ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-                            ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-                        </div>
-                    </a>
-                    <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
-                        Add to Cart
-                    </button>
-                `;
-                container.appendChild(card);
-                document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
-                    e.stopPropagation(); e.preventDefault();
-                    addToCart(product);
-                });
+        container.innerHTML = '';
+        if (products.length === 0) {
+            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found.</p>`;
+            return;
+        }
+
+        products.forEach(product => {
+            // --- NEW AUTOMATIC PERCENTAGE LOGIC ---
+            let displayPercent = 0;
+            const currentPrice = Number(product.price || 0);
+            const oldPrice = Number(product.originalPrice || 0);
+
+            if (product.discountPercent > 0) {
+                // Use the manual percentage if it exists
+                displayPercent = Math.round(Number(product.discountPercent));
+            } else if (oldPrice > currentPrice) {
+                // Auto-calculate if only fixed prices were set
+                const savings = oldPrice - currentPrice;
+                displayPercent = Math.round((savings / oldPrice) * 100);
+            }
+
+            let firstImage = '';
+            if (Array.isArray(product.images) && product.images.length > 0) firstImage = product.images[0];
+            else if (typeof product.images === 'string' && product.images.trim()) firstImage = product.images.split(',')[0].trim();
+            firstImage = getValidImageURL(firstImage);
+
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = `
+                <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
+                    <img src="${firstImage}" alt="${product.name}">
+                    <h3 title="${product.name}">${product.name}</h3>
+                    <div class="price-container">
+                        <span class="sale-price">৳${currentPrice.toFixed(0)}</span>
+                        ${oldPrice > 0 ? `<span class="original-price">৳${oldPrice.toFixed(0)}</span>` : ''}
+                        ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+                    </div>
+                </a>
+                <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
+                    Add to Cart
+                </button>
+            `;
+            container.appendChild(card);
+            
+            document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
+                e.stopPropagation(); e.preventDefault();
+                addToCart(product);
             });
-        } catch (error) { console.error('Error loading products:', error); }
+        });
+    } catch (error) { 
+        console.error('Error loading products:', error); 
     }
+}
 
     document.addEventListener("DOMContentLoaded", async () => {
         updateCartCount();
@@ -348,4 +366,5 @@ slide.appendChild(imgElement);
 
 </body>
 </html>
+
 
