@@ -52,49 +52,35 @@ body {
 /* === ADS BANNER SLIDER STYLES === */
 /* ========================================= */
 
-
-/* SPECIFIC BANNER AREA - FHD & NO CROPPING */
 .ads-banner-container {
     width: 100%;
-    max-width: 1200px; /* Matches your site width */
+    max-width: 1200px;
     margin: 20px auto;
-    background-color: #000; /* Black background for a cinematic feel */
-    border-radius: 12px;
-    overflow: hidden;
+    background-color: transparent; /* Removes the dark background */
     position: relative;
-    /* Aspect ratio for standard FHD banners */
-    aspect-ratio: 1920 / 600; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    /* Remove aspect-ratio so it shrinks to the image size */
+    height: auto; 
 }
 
 .ads-slider {
+    display: block;
     width: 100%;
-    height: 100%;
 }
 
 .banner-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative; /* Change to relative so it takes up space */
+    display: none;      /* Hide all by default */
     width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 0.8s ease-in-out;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .banner-slide.active {
-    opacity: 1;
+    display: block;     /* Show only the active one */
 }
 
-/* The Secret to FHD Clarity: Using a real IMG tag */
 .banner-slide img {
     width: 100%;
-    height: 100%;
-    /* 'contain' ensures the FULL image shows. 'cover' zooms. We use contain. */
-    object-fit: contain; 
+    height: auto;       /* The image determines the height */
     display: block;
 }
 
@@ -754,6 +740,7 @@ body {
 .product-card a:hover h3 {
     color: #ff6600; /* Title turns orange when you hover over the card */
 }
+
 
 
 
