@@ -312,14 +312,22 @@ slide.appendChild(imgElement);
 
             const card = document.createElement("div");
             card.className = "product-card";
-            card.innerHTML = `
-                <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
-                    <img src="${firstImage}" alt="${product.name}">
-                    <h3 title="${product.name}">${product.name}</h3>
-                    <div class="price-container">
-                        <span class="sale-price">৳${currentPrice.toFixed(0)}</span>
-                        ${oldPrice > 0 ? `<span class="original-price">৳${oldPrice.toFixed(0)}</span>` : ''}
-                        ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+         card.innerHTML = `
+    <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
+        <img src="${firstImage}" alt="${product.name}">
+        <h3 title="${product.name}">${product.name}</h3>
+        <div class="price-container">
+            <span class="sale-price">৳${currentPrice.toFixed(0)}</span>
+            
+            ${oldPrice > 0 ? `<span class="original-price">৳${oldPrice.toFixed(0)}</span>` : ''}
+            
+            ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+        </div>
+    </a>
+    <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
+        Add to Cart
+    </button>
+`;
                     </div>
                 </a>
                 <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
@@ -366,5 +374,6 @@ slide.appendChild(imgElement);
 
 </body>
 </html>
+
 
 
