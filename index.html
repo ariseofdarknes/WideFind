@@ -245,7 +245,10 @@
                     banners.forEach((banner, index) => {
                         const slide = document.createElement('div');
                         slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
-                        slide.style.backgroundImage = `url('${banner.img}')`;
+                      const imgElement = document.createElement('img');
+imgElement.src = banner.img || banner.image;
+imgElement.alt = "Ad Banner";
+slide.appendChild(imgElement);
                         bannerSlider.appendChild(slide);
                     });
                     if (banners.length > 1) {
@@ -345,3 +348,4 @@
 
 </body>
 </html>
+
