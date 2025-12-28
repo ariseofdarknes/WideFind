@@ -33,9 +33,66 @@
             align-items: center;
             gap: 15px;
         }
+
+        /* --- NEW: MODERN TOAST ALERT STYLES --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+        .modern-toast {
+            background: white;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
+            opacity: 0;
+            pointer-events: auto;
+            border-left: 5px solid #ff6600;
+            font-family: 'Poppins', sans-serif;
+        }
+        .modern-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast-icon {
+            background: #ff6600;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .toast-content {
+            flex: 1;
+        }
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+            display: block;
+            color: #ff6600;
+        }
+        .toast-msg {
+            font-size: 13px;
+            color: #666;
+        }
+        /* -------------------------------------- */
     </style>
 </head>
 <body>
+
+    <div id="toast-container"></div>
 
     <header class="site-header">
         <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
@@ -49,19 +106,14 @@
         </div>
     </header>
     
-    <!-- Dynamic Ads Banner (loaded from Firebase) -->
     <div class="ads-banner-container">
-        <div class="ads-slider" id="banner-slider">
-            <!-- Banners will be loaded here -->
-        </div>
+        <div class="ads-slider" id="banner-slider"></div>
     </div>
 
-    <!-- Dynamic Category Menu (loaded from Firebase) -->
     <nav class="category-menu-wrapper">
         <div class="container">
             <div class="category-menu-slider" id="category-menu">
                 <a href="#" class="category-item active" data-category="popular">Popular</a>
-                <!-- More categories loaded dynamically -->
             </div>
         </div>
     </nav>
@@ -81,7 +133,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Helper function for image URLs
     function getValidImageURL(url) {
         if (!url) return "https://placehold.co/400x300?text=No+Image";
         if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
@@ -105,7 +156,32 @@
     const db = getFirestore(app);
     const appId = "WideFind";
     const CART_STORAGE_KEY = 'widefindCart';
-    // --- NEW: Add to Cart Function ---
+
+    // --- NEW: High Quality Modern Toast Function ---
+    function showToast(productName) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'modern-toast';
+        toast.innerHTML = `
+            <div class="toast-icon">✓</div>
+            <div class="toast-content">
+                <span class="toast-title">Added to Cart</span>
+                <span class="toast-msg">${productName}</span>
+            </div>
+        `;
+        container.appendChild(toast);
+
+        // Slide In
+        setTimeout(() => toast.classList.add('show'), 100);
+
+        // Slide Out and Remove
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
+    // --- UPDATED: Add to Cart Function ---
     function addToCart(product) {
         const cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
         const existingItem = cart.find(item => item.id === product.id);
@@ -130,11 +206,12 @@
         }
 
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        updateCartCount(); // This updates the number on the cart icon immediately
-        alert("Added to cart!");
+        updateCartCount();
+        
+        // Use the new modern alert instead of alert()
+        showToast(product.name); 
     }
 
-    // Update cart count badge
     function updateCartCount() {
         try {
             const cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
@@ -145,36 +222,25 @@
         }
     }
 
-    // Load site settings (categories, banners)
     async function loadSiteSettings() {
         try {
             const settingsRef = doc(db, `artifacts/${appId}/public/data/config/siteSettings`);
             const snap = await getDoc(settingsRef);
-            
             if (snap.exists()) {
                 const settings = snap.data();
-                
-                // Load categories
                 const categories = settings.categoryList || ['Popular','T-Shirt','Sunglass','Watch'];
                 const menu = document.getElementById('category-menu');
                 menu.innerHTML = '<a href="#" class="category-item active" data-category="popular">Popular</a>';
-                
                 categories.forEach(cat => {
                     if (cat.toLowerCase() !== 'popular') {
                         const link = document.createElement('a');
-                        link.href = '#';
-                        link.className = 'category-item';
-                        link.dataset.category = cat;
-                        link.textContent = cat;
+                        link.href = '#'; link.className = 'category-item'; link.dataset.category = cat; link.textContent = cat;
                         menu.appendChild(link);
                     }
                 });
-                
-                // Load banners
                 const banners = settings.adBanners || [];
                 const bannerSlider = document.getElementById('banner-slider');
                 bannerSlider.innerHTML = '';
-                
                 if (banners.length > 0) {
                     banners.forEach((banner, index) => {
                         const slide = document.createElement('div');
@@ -182,8 +248,6 @@
                         slide.style.backgroundImage = `url('${banner.img}')`;
                         bannerSlider.appendChild(slide);
                     });
-                    
-                    // Auto-rotate banners
                     if (banners.length > 1) {
                         let currentBanner = 0;
                         setInterval(() => {
@@ -195,23 +259,16 @@
                     }
                 }
             }
-        } catch (error) {
-            console.error('Error loading settings:', error);
-        }
+        } catch (error) { console.error('Error loading settings:', error); }
     }
 
-    // Load products
-   // --- UPDATED: Load Products Function ---
     async function loadProducts(category = "popular") {
         const container = document.getElementById('product-list-container');
         const title = document.getElementById('product-section-title');
-        
         container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#999;padding:40px;">Loading products...</p>';
-
         try {
             const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
             const snapshot = await getDocs(productsRef);
-
             let products = [];
             snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
 
@@ -222,37 +279,21 @@
                 products = products.filter(p => p.category === category);
                 title.textContent = `${category} Collection`;
             }
-
             container.innerHTML = '';
-
             if (products.length === 0) {
                 container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found.</p>`;
                 return;
             }
-
             products.forEach(product => {
-                // Calculate discount
                 let displayPercent = 0;
-                if (product.discountPercent > 0) {
-                    displayPercent = Math.round(Number(product.discountPercent));
-                }
+                if (product.discountPercent > 0) displayPercent = Math.round(Number(product.discountPercent));
+                let firstImage = '';
+                if (Array.isArray(product.images) && product.images.length > 0) firstImage = product.images[0];
+                else if (typeof product.images === 'string' && product.images.trim()) firstImage = product.images.split(',')[0].trim();
+                firstImage = getValidImageURL(firstImage);
 
-                // Get image
-              let firstImage = '';
-if (Array.isArray(product.images) && product.images.length > 0) {
-    firstImage = product.images[0];
-} else if (typeof product.images === 'string' && product.images.trim()) {
-    firstImage = product.images.split(',')[0].trim();
-}
-firstImage = getValidImageURL(firstImage);
-
-                // Create the card div
                 const card = document.createElement("div");
                 card.className = "product-card";
-                
-                // --- THE BIG CHANGE IS HERE ---
-                // 1. We wrap the image/title in an <a> tag so clicking the CARD opens details.
-                // 2. We add a separate <button> for adding to cart.
                 card.innerHTML = `
                     <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
                         <img src="${firstImage}" alt="${product.name}">
@@ -263,37 +304,23 @@ firstImage = getValidImageURL(firstImage);
                             ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
                         </div>
                     </a>
-                    
                     <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
                         Add to Cart
                     </button>
                 `;
-                
                 container.appendChild(card);
-
-                // Add the "Click" listener to the button we just created
                 document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
-                    // Prevent the click from bubbling up (so it doesn't open the product page)
-                    e.stopPropagation();
-                    e.preventDefault();
-                    // Run our add to cart logic
+                    e.stopPropagation(); e.preventDefault();
                     addToCart(product);
                 });
             });
-
-        } catch (error) {
-            console.error('Error loading products:', error);
-            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;">Failed to load products.</p>`;
-        }
+        } catch (error) { console.error('Error loading products:', error); }
     }
 
-    // Initialize page
     document.addEventListener("DOMContentLoaded", async () => {
         updateCartCount();
         await loadSiteSettings();
         await loadProducts("popular");
-
-        // Category click handlers (use event delegation)
         document.getElementById('category-menu').addEventListener('click', (e) => {
             if (e.target.classList.contains('category-item')) {
                 e.preventDefault();
@@ -302,53 +329,19 @@ firstImage = getValidImageURL(firstImage);
                 loadProducts(e.target.dataset.category);
             }
         });
-
-        // Update cart count when returning to page
         window.addEventListener('focus', updateCartCount);
     });
 </script>
-<!-- 🌐 Floating WhatsApp & Facebook Support Buttons -->
-<style>
-  .floating-support {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 9999;
-  }
-  .support-btn {
-    display: block;
-    padding: 12px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    border-radius: 8px;
-    text-decoration: none;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-    transition: 0.25s ease-in-out;
-  }
-  .whatsapp { background: #25D366; }
-  .whatsapp:hover { background: #1ebd59; }
-  .facebook { background: #1877f2; }
-  .facebook:hover { background: #1164d9; }
-</style>
 
+<style>
+  .floating-support { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+  .support-btn { display: block; padding: 12px 18px; font-size: 14px; font-weight: 600; color: #fff; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.25); transition: 0.25s ease-in-out; }
+  .whatsapp { background: #25D366; } .facebook { background: #1877f2; }
+</style>
 <div class="floating-support">
-  <a href="https://wa.me/8801729789847" target="_blank" class="support-btn whatsapp">
-    WhatsApp Support
-  </a>
-  <a href="https://facebook.com/widefind" target="_blank" class="support-btn facebook">
-    Facebook Page
-  </a>
+  <a href="https://wa.me/8801729789847" target="_blank" class="support-btn whatsapp">WhatsApp Support</a>
+  <a href="https://facebook.com/widefind" target="_blank" class="support-btn facebook">Facebook Page</a>
 </div>
 
 </body>
 </html>
-
-
-
-
-
