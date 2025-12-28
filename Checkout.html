@@ -386,10 +386,13 @@ function getDeliveryFee() {
 
 // compute all totals
 function calculateTotals() {
-  const productTotal = cartItems.reduce(
-    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
-    0
-  );
+  const productTotal = cartItems.reduce((sum, item) => {
+    // This ensures we remove any "৳" or commas before calculating
+    const cleanPrice = Number(String(item.price).replace(/[^0-9.-]+/g, "")) || 0;
+    const cleanQty = Number(item.qty) || 1;
+    return sum + (cleanPrice * cleanQty);
+  }, 0);
+  
   const deliveryFee = getDeliveryFee();
   const discount = currentDiscount || 0;
   const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
@@ -605,6 +608,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
