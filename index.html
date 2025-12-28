@@ -200,7 +200,8 @@
                 return;
             }
 
-            products.forEach(product => {
+    
+    products.forEach(product => {
                 // Calculate discount percentage for display
                 let displayPercent = 0;
                 if (product.discountPercent && Number(product.discountPercent) > 0) {
@@ -217,49 +218,76 @@
                     firstImage = product.images.split(',')[0].trim();
                 }
 
+                // --- START OF CARD CREATION ---
+                const card = document.createElement("div");
+                card.className = "product-card";
+                card.style.cursor = "pointer"; 
 
-                
-const card = document.createElement("div");
-card.className = "product-card";
-card.style.cursor = "pointer"; // Makes mouse look like a hand
+                card.innerHTML = `
+                    <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
+                        <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
+                        <h3 title="${product.name || ''}">${product.name || ''}</h3>
+                        <div class="price-container">
+                            <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
+                            ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+                            ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+                        </div>
+                    </a>
+                    <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
+                        Add to Cart
+                    </button>
+                `;
 
-// 1. We wrap everything inside a link <a> so the WHOLE card is clickable
-card.innerHTML = `
-    <a href="product.html?id=${product.id}" style="text-decoration:none; color:inherit; display:block;">
-        <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
-        <h3 title="${product.name || ''}">${product.name || ''}</h3>
-        <div class="price-container">
-            <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-            ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-            ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-        </div>
-    </a>
-    <button id="add-btn-${product.id}" class="btn-buy" style="width:100%; margin-top:10px; border:none; cursor:pointer;">
-        Add to Cart
-    </button>
-`;
+                container.appendChild(card);
 
-container.appendChild(card);
+                document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    addToCart(product); 
+                });
+            }); // This closes the forEach loop correctly
 
-// 2. This part makes the "Add to Cart" button work without opening the product page
-document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) => {
-    e.preventDefault(); 
-    e.stopPropagation(); 
-    if (typeof addToCart === "function") {
-        addToCart(product);
-    } else {
-        alert("Item added to cart!"); // Temporary message if you don't have the function yet
-    }
-});
-
-
-                
         } catch (error) {
             console.error('Error loading products:', error);
             container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;padding:40px;">Failed to load products. Please refresh the page.</p>`;
         }
     }
 
+
+
+    
+// --- MODERN ALERT & CART LOGIC ---
+    function showToast(message) {
+        const toast = document.getElementById('custom-toast');
+        const msg = document.getElementById('toast-msg');
+        if (toast && msg) {
+            msg.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    }
+
+    function addToCart(product) {
+        try {
+            let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) {
+                existing.qty = (Number(existing.qty) || 0) + 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            updateCartCount();
+            showToast(`${product.name} added to cart!`);
+        } catch (e) {
+            console.error("Cart Error:", e);
+        }
+    }
+
+
+
+
+    
     // Initialize page
     document.addEventListener("DOMContentLoaded", async () => {
         updateCartCount();
@@ -318,8 +346,16 @@ document.getElementById(`add-btn-${product.id}`).addEventListener('click', (e) =
   </a>
 </div>
 
+
+    <div id="custom-toast">
+    <span class="icon">✔</span> 
+    <span id="toast-msg">Added to cart</span>
+</div>
+
+    
 </body>
 </html>
+
 
 
 
