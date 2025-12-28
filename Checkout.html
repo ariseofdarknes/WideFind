@@ -258,71 +258,44 @@ function computeDiscount(coupon, total) {
     ? Math.round(total * (coupon.amount / 100))
     : coupon.amount;
 }
-
 function applyCouponClientSide(code) {
   couponStatus.textContent = "";
-  couponStatus.style.color = "";              // reset color before doing anything
   const coupon = findMatchingCoupon(code);
   if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
-
-  // 🚫 CHECK USAGE LIMIT
-  const limit = Number(coupon.usageLimit) || 0;
-  const used = Number(coupon.used) || 0;
-  if (limit > 0 && used >= limit) {
-    couponStatus.textContent = `❌ Coupon fully used — (${limit} total uses reached)`;
-    couponStatus.style.color = "red";
-    showAlert("error", "Coupon limit reached / expired");
-    appliedCoupon = null;
-    currentDiscount = 0;
-    return;
-  }
-
-  // Check allowed products
-  if (!couponAppliesToCart(coupon, cartItems)) {
-    couponStatus.textContent = "Coupon not valid for these items.";
-    return;
-  }
-
-  const productTotal = cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
-
-  // 🚫 Check minimum spend
-  if (coupon.minSpendRequired && productTotal < coupon.minSpendRequired) {
-    couponStatus.textContent = `⚠ Minimum order ৳${coupon.minSpendRequired} required`;
-    showAlert("error", `Minimum ৳${coupon.minSpendRequired} required`);
-    appliedCoupon = null;
-    currentDiscount = 0;
-    couponStatus.style.color = "red";
-    return;
-  }
-
-  // ✅ APPLY DISCOUNT
+  if (!couponAppliesToCart(coupon, cartItems))
+    return (couponStatus.textContent = "Coupon not valid for these items.");
+  const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
   currentDiscount = computeDiscount(coupon, productTotal);
   appliedCoupon = coupon;
-renderOrderSummary();
-
-  // 🔢 Calculate remaining uses safely
-  let remaining = limit > 0 ? (limit - used - 1) : null;
-  if (remaining < 0) remaining = 0;
-
-  // 🎨 Show message with remaining uses
-  couponStatus.textContent = remaining !== null
-    ? `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount} (${remaining} uses left)`
-    : `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
-
-  // 🎨 Color code (green if plenty left, red if only 1 or none left)
-  if (remaining !== null) {
-    couponStatus.style.color = remaining <= 1 ? "red" : "green";
-  } else {
-    couponStatus.style.color = "green";
-  }
-
-  // 🚨 Last use warning popup
-  if (remaining === 1) {
-    showAlert("success", `⚠ Last use left for coupon ${coupon.code}!`);
-  } else {
-    showAlert("success", `Coupon ${coupon.code} applied!`);
-  }
+  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
+  showAlert("success", `Coupon ${coupon.code} applied!`);
 }
+applyCouponBtn.addEventListener("click", async () => {
+  applyCouponBtn.disabled = true;
+  applyCouponBtn.innerHTML =
+    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
+       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+     </svg> Applying...`;
+
+  // Refresh coupons from Firestore (in case admin changed them)
+  await loadCouponsFromFirestore();
+
+  const code = couponInput.value.trim();
+
+  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
+  applyCouponClientSide(code);
+
+  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
+  renderOrderSummary();
+
+  // Enable button again after short delay to keep UX smooth
+  setTimeout(() => {
+    applyCouponBtn.disabled = false;
+    applyCouponBtn.textContent = "Apply";
+  }, 1000);
+});
+
 
 
 
@@ -386,13 +359,10 @@ function getDeliveryFee() {
 
 // compute all totals
 function calculateTotals() {
-  const productTotal = cartItems.reduce((sum, item) => {
-    // This ensures we remove any "৳" or commas before calculating
-    const cleanPrice = Number(String(item.price).replace(/[^0-9.-]+/g, "")) || 0;
-    const cleanQty = Number(item.qty) || 1;
-    return sum + (cleanPrice * cleanQty);
-  }, 0);
-  
+  const productTotal = cartItems.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+    0
+  );
   const deliveryFee = getDeliveryFee();
   const discount = currentDiscount || 0;
   const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
@@ -441,22 +411,11 @@ function renderOrderSummary() {
 regionEl.addEventListener("change", renderOrderSummary);
 districtEl.addEventListener("change", renderOrderSummary);
 upazilaEl.addEventListener("change", renderOrderSummary);
-
 couponInput.addEventListener("input", () => {
+  // reset displayed coupon message when user edits
   couponStatus.textContent = "";
-  couponStatus.style.color = "";   // 🔁 reset color
 });
 
-// 👇 ADD HERE
-couponInput.addEventListener("blur", () => {
-  if (appliedCoupon) renderOrderSummary();
-});
-
-// ✅ ADD THIS BLOCK RIGHT AFTER ↑
-applyCouponBtn.addEventListener("click", () => {
-  const code = couponInput.value.trim();
-  applyCouponClientSide(code);
-});
 
 
 /* ---------------- Payment Switching ---------------- */
@@ -489,33 +448,6 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
   ev.preventDefault();
   if (!cartItems.length) return showAlert("error","Your cart is empty!");
 
-/* 🚫 Coupon re-check safety (limit + min spend protection) */
-if (appliedCoupon) {
-
-    // 🚫 RE-CHECK COUPON USAGE LIMIT
-    const limit = Number(appliedCoupon.usageLimit) || 0;
-    const used = Number(appliedCoupon.used) || 0;
-    if (limit > 0 && used >= limit) {
-      showAlert("error", `⚠ Coupon ${appliedCoupon.code} has reached usage limit (${limit}).`);
-      appliedCoupon = null;
-      currentDiscount = 0;
-      renderOrderSummary();
-      return;
-    }
-
-    // 🚫 RE-CHECK MIN SPEND
-    const productTotalNow = cartItems.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
-    const minReqNow = Number(appliedCoupon.minSpendRequired) || 0;
-    if (minReqNow > 0 && productTotalNow < minReqNow) {
-      showAlert("error", `⚠ Coupon ${appliedCoupon.code} no longer valid (min ৳${minReqNow}).`);
-      appliedCoupon = null;
-      currentDiscount = 0;
-      renderOrderSummary();
-      return;
-    }
-}
-
-
   const orderId = "WF" + Date.now();
   const order = {
     orderId,
@@ -543,59 +475,48 @@ if (appliedCoupon) {
     await fetch(scriptURL,{method:"POST",body:JSON.stringify(order),headers:{"Content-Type":"application/json"}});
   } catch(e){ console.error("Sheet send failed",e); }
 
-  // save to Firestore
-  try {
-    await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
+// save to Firestore
+try {
+  await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
 
-// ==== Coupon usage update ====
-if (appliedCoupon && appliedCoupon.code) {
-  try {
-    const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
-    const snap = await getDoc(couponRef);
+  // Update coupon usage if applied
+  if (appliedCoupon && appliedCoupon.code) {
+    try {
+      const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
+      const snap = await getDoc(couponRef);
 
-    if (snap.exists()) {
-      const data = snap.data();
-      const updatedCodes = (data.validCodes || []).map(c => {
-        if (c.code.toUpperCase() === appliedCoupon.code.toUpperCase()) {
-          return {
-            ...c,
-            used: Number(c.used || 0) + 1
-          };
-        }
-        return c;
-      });
+      if (snap.exists()) {
+        const data = snap.data();
+        const updatedCodes = (data.validCodes || []).map(c => {
+          if (c.code === appliedCoupon.code) {
+            const newUsed = (c.used || 0) + 1;
+            return { ...c, used: newUsed };
+          }
+          return c;
+        });
 
-      // 🔥 Save back to Firestore
-      await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
-
-      // 🔄 Update local memory
-      appliedCoupon.used = Number(appliedCoupon.used || 0) + 1;
-      console.log("🔥 Usage saved locally:", appliedCoupon.code, appliedCoupon.used);
-
-      // 🔁 Re-fetch from Firestore to confirm
-      await loadCouponsFromFirestore();
-      console.log("📌 Coupons refreshed successfully");
+        await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
+        console.log(`🔥 Coupon ${appliedCoupon.code} used count increased.`);
+      }
+    } catch (err) {
+      console.error("❌ Failed to update coupon usage:", err);
     }
-
-  } catch (err) {
-    console.error("❌ Failed updating coupon usage:", err);
   }
+
+  // Final success actions
+  localStorage.removeItem(CART_STORAGE_KEY);
+  showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
+  setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
+
+} catch (err) {
+  console.error(err);
+  showAlert("error", "❌ Failed to save order!");
+} finally {
+  placeOrderBtn.disabled = false;
+  placeOrderBtn.textContent = "Place Order";
 }
 
-
-    localStorage.removeItem(CART_STORAGE_KEY);
-    showAlert("success", `✅ Order placed! ID: ${orderId}`);
-    setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
-
-  } catch (err) {
-    console.error(err);
-    showAlert("error", "❌ Failed to save order!");
-  } finally {
-    placeOrderBtn.disabled = false;
-    placeOrderBtn.textContent = "Place Order";
-  }
 });
-
 /* ---------------- Cancel Order ---------------- */
 cancelOrderBtn.addEventListener("click",()=>{
   if(confirm("Are you sure you want to cancel this order?")){
@@ -608,10 +529,4 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
-
-
-
-
-
-
 
