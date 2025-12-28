@@ -105,6 +105,34 @@
     const db = getFirestore(app);
     const appId = "WideFind";
     const CART_STORAGE_KEY = 'widefindCart';
+    // --- NEW: Add to Cart Function ---
+    function addToCart(product) {
+        const cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+        const existingItem = cart.find(item => item.id === product.id);
+
+        let cartImage = "";
+        if (Array.isArray(product.images) && product.images.length > 0) {
+            cartImage = product.images[0];
+        } else if (typeof product.images === 'string' && product.images.trim()) {
+            cartImage = product.images.split(',')[0].trim();
+        }
+
+        if (existingItem) {
+            existingItem.qty = (Number(existingItem.qty) || 1) + 1;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: cartImage,
+                qty: 1
+            });
+        }
+
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        updateCartCount(); // This updates the number on the cart icon immediately
+        alert("Added to cart!");
+    }
 
     // Update cart count badge
     function updateCartCount() {
@@ -210,7 +238,13 @@
                 }
 
                 // Get image
-                let firstImage = getValidImageURL(product.images ? (Array.isArray(product.images) ? product.images[0] : product.images) : "");
+              let firstImage = '';
+if (Array.isArray(product.images) && product.images.length > 0) {
+    firstImage = product.images[0];
+} else if (typeof product.images === 'string' && product.images.trim()) {
+    firstImage = product.images.split(',')[0].trim();
+}
+firstImage = getValidImageURL(firstImage);
 
                 // Create the card div
                 const card = document.createElement("div");
@@ -313,6 +347,7 @@
 
 </body>
 </html>
+
 
 
 
