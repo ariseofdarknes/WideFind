@@ -52,37 +52,45 @@ body {
 /* === ADS BANNER SLIDER STYLES === */
 /* ========================================= */
 
+/* FLUID BANNER FIX - REMOVES EMPTY SPACING */
 .ads-banner-container {
     width: 100%;
     max-width: 1200px;
-    margin: 20px auto;
-    background-color: transparent; /* Removes the dark background */
+    margin: 10px auto 0 auto; /* Removed bottom margin to close gap */
+    background-color: transparent; 
     position: relative;
     overflow: hidden;
-    /* Remove aspect-ratio so it shrinks to the image size */
-    height: auto; 
+    height: auto; /* Allow height to be determined by the image */
 }
 
 .ads-slider {
-    display: block;
     width: 100%;
+    height: auto;
+    display: block;
 }
 
 .banner-slide {
-    position: relative; /* Change to relative so it takes up space */
-    display: none;      /* Hide all by default */
     width: 100%;
+    display: none; /* Hide by default */
 }
 
 .banner-slide.active {
-    display: block;     /* Show only the active one */
+    display: block; /* Show only active */
+    position: relative; /* Takes up its own space */
 }
 
 .banner-slide img {
     width: 100%;
-    height: auto;       /* The image determines the height */
+    height: auto; /* Keeps image proportions perfect */
     display: block;
 }
+
+/* Category Menu Spacing */
+.category-menu-wrapper {
+    margin-top: 5px; /* Pulls the menu closer to the banner */
+    padding-top: 10px;
+}
+
 
 /* Tablet & iPad Logic */
 @media (max-width: 1024px) {
@@ -740,6 +748,7 @@ body {
 .product-card a:hover h3 {
     color: #ff6600; /* Title turns orange when you hover over the card */
 }
+
 
 
 
