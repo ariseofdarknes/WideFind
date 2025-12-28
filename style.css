@@ -147,90 +147,109 @@ body {
     font-weight: 700;
 }
 
+
 /* ========================================= */
-/* === HOMEPAGE: PRODUCT GRID (5x4 LAYOUT) === */
+/* === HOMEPAGE: PRODUCT GRID (FIXED) === */
 /* ========================================= */
 .product-grid {
     display: grid;
-    /* Enforce 5 equal columns for large screens */
+    /* Large screens: 5 columns */
     grid-template-columns: repeat(5, 1fr); 
-    gap: 20px;
-    margin-top: 30px;
-    width: 100%; 
+    gap: 15px; /* Unified gap for all sides */
+    margin: 20px auto;
+    width: 95%; /* Prevents cards from touching screen edges */
+    max-width: 1200px;
 }
 
 .product-card {
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    text-align: center;
-    padding: 20px;
-    transition: transform 0.2s;
-    /* Added lines below */
+    border-radius: 12px; /* Smoother corners */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 12px; /* Reduced padding for mobile balance */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #eee; /* Defines the card boundary clearly */
 }
 
 .product-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
+
 .product-card img {
     width: 100%;
-    height: 180px; /* Fixed height for consistent look in 5x4 grid */
+    aspect-ratio: 1 / 1; /* Keeps images square and unified */
     object-fit: cover;
-    border-radius: 4px;
-}
-.product-card h3 {
-    font-size: 1rem; 
-    margin: 15px 0 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    border-radius: 8px;
 }
 
-/* NEW STYLES FOR HOME PAGE PRICE DISPLAY */
-.product-card .price-container {
-    margin-bottom: 15px;
+.product-card h3 {
+    font-size: 0.9rem; 
+    margin: 10px 0;
+    /* Allows two lines of text then adds ... */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.4em; 
     line-height: 1.2;
+    text-align: left; /* Better for readability */
+}
+
+/* PRICE DISPLAY */
+.product-card .price-container {
+    margin: 8px 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrap on very small screens */
-    gap: 5px;
+    justify-content: flex-start; /* Aligns price to left */
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
 }
-.product-card .price-container .sale-price {
-    font-size: 1.05rem; /* Sale Price */
+
+.product-card .sale-price {
+    font-size: 1rem;
     font-weight: 700;
-    color: #ff6600; /* Orange for emphasis */
+    color: #ff6600;
 }
-.product-card .price-container .original-price {
-    font-size: 0.8rem; /* Original Price */
+
+.product-card .original-price {
+    font-size: 0.75rem;
     color: #999;
     text-decoration: line-through;
-    margin-right: 0;
 }
-.product-card .price-container .discount-percent {
-    font-size: 0.8rem; /* Discount % */
-    font-weight: 600;
-    color: #008000; /* Green for discount */
-}
-/* END NEW STYLES */
 
-
-/* Responsive adjustment for homepage grid */
+/* RESPONSIVE BREAKPOINTS */
 @media (max-width: 1200px) {
     .product-grid {
-        /* 4 columns on medium screens */
         grid-template-columns: repeat(4, 1fr); 
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .product-grid {
-        /* 2 columns on mobile screens */
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        /* Force 2 columns with clear horizontal spacing */
         grid-template-columns: repeat(2, 1fr); 
+        gap: 10px;
+        width: 98%; 
+        padding: 0 5px;
+    }
+    
+    .product-card {
+        padding: 8px; /* Compact padding for small screens */
+    }
+
+    .product-card h3 {
+        font-size: 0.8rem;
     }
 }
 
@@ -748,6 +767,7 @@ body {
 .product-card a:hover h3 {
     color: #ff6600; /* Title turns orange when you hover over the card */
 }
+
 
 
 
