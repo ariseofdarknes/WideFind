@@ -532,20 +532,21 @@ try {
 
       if (snap.exists()) {
         const data = snap.data();
-        const updatedCodes = (data.validCodes || []).map(c => {
-          if (c.code === appliedCoupon.code) {
-            const newUsedCount = (c.used || 0) + 1;
-            const limit = c.usageLimit || 999999;
-            
-            return { 
-              ...c, 
-              used: newUsedCount,
-              // This is the specific line that auto-disables the coupon
-              status: newUsedCount >= limit ? "inactive" : (c.status || "active")
-            };
-          }
-          return c;
-        });
+       const updatedCodes = (data.validCodes || []).map(c => {
+  if (c.code === appliedCoupon.code) {
+    const newUsedCount = (c.used || 0) + 1;
+    // Use the limit from Firestore, or default to 999999
+    const limit = Number(c.usageLimit) || 999999; 
+    
+    return { 
+      ...c, 
+      used: newUsedCount,
+      // This is the missing logic:
+      status: newUsedCount >= limit ? "inactive" : (c.status || "active")
+    };
+  }
+  return c;
+});
 
         await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
         console.log(`🔥 Coupon ${appliedCoupon.code} updated in Admin Panel.`);
@@ -603,6 +604,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
