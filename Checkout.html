@@ -483,26 +483,33 @@ document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').fo
   });
 });
 
+       
+
 /* ---------------- Place Order ---------------- */
+// Add 'updateDoc' to your imports at the very top of your script!
+// import { ..., updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
 document.getElementById("order-form").addEventListener("submit", async ev => {
   ev.preventDefault();
   if (!cartItems.length) return showAlert("error", "Your cart is empty!");
 
   const orderId = "WF" + Date.now();
+  
+  // Create the order object
   const order = {
     orderId,
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    region: regionEl.value,
-    district: districtEl.value,
-    upazila: upazilaEl.value,
-    address: document.getElementById("address").value,
-    paymentMethod: document.getElementById("payment-method").value,
-    paymentChannel: document.getElementById("payment-channel").value,
-    senderNumber: document.getElementById("sender-number").value,
-    transactionId: document.getElementById("transaction-id").value,
-    cartItems,
-    discount: currentDiscount,
+    name: document.getElementById("name").value || "",
+    phone: document.getElementById("phone").value || "",
+    region: regionEl.value || "",
+    district: districtEl.value || "",
+    upazila: upazilaEl.value || "",
+    address: document.getElementById("address").value || "",
+    paymentMethod: document.getElementById("payment-method").value || "Cash on Delivery",
+    paymentChannel: document.getElementById("payment-channel").value || "",
+    senderNumber: document.getElementById("sender-number").value || "",
+    transactionId: document.getElementById("transaction-id").value || "",
+    cartItems: cartItems, // Ensure this is a clean array
+    discount: Number(currentDiscount) || 0,
     timestamp: new Date().toISOString(),
   };
 
@@ -510,14 +517,16 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
   placeOrderBtn.textContent = "Processing...";
 
   try {
-    // 1. Send to Google Sheet
+    // 1. Send to Google Sheet (Optional: move inside try/catch)
     const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
-    await fetch(scriptURL, { method: "POST", body: JSON.stringify(order), headers: { "Content-Type": "application/json" } });
+    await fetch(scriptURL, { method: "POST", body: JSON.stringify(order), headers: { "Content-Type": "application/json" } }).catch(e => console.log("Sheet error ignored"));
 
-    // 2. Save Order to Firestore
-    await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
+    // 2. Save Order to Firestore (The part that was failing)
+    // We use JSON.parse(JSON.stringify()) to make sure there are no 'undefined' values
+    const cleanOrder = JSON.parse(JSON.stringify(order));
+    await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), cleanOrder);
 
-    // 3. Update Coupon Usage & Auto-Deactivate
+    // 3. Update Coupon Usage
     if (appliedCoupon && appliedCoupon.code) {
       try {
         const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
@@ -532,34 +541,37 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
               return {
                 ...c,
                 used: newUsedCount,
-                // The Logic: If new count hits the limit, set to inactive
                 status: newUsedCount >= limit ? "inactive" : (c.status || "active")
               };
             }
             return c;
           });
-          await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
-          console.log(`🔥 Coupon ${appliedCoupon.code} updated.`);
+
+          // Use setDoc with merge: true to update ONLY validCodes
+          await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
+          console.log("Coupon usage updated successfully.");
         }
       } catch (err) {
-        console.error("Coupon Sync Error:", err);
+        console.error("Coupon update failed (Permission issue?):", err);
+        // We don't stop the order just because the coupon update failed
       }
     }
 
-    // 4. Final Success Actions
+    // 4. Success!
     localStorage.removeItem(CART_STORAGE_KEY);
-    showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
+    showAlert("success", `✅ Order placed! ID: ${orderId}`);
     setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
 
   } catch (err) {
-    console.error(err);
-    showAlert("error", "❌ Failed to save order!");
+    console.error("Full Firestore Error:", err);
+    showAlert("error", "❌ Failed to save order! Check internet or console.");
   } finally {
     placeOrderBtn.disabled = false;
     placeOrderBtn.textContent = "Place Order";
   }
 });
 
+       
 /* ---------------- Cancel Order ---------------- */
 cancelOrderBtn.addEventListener("click", () => {
   if (confirm("Are you sure you want to cancel this order?")) {
@@ -572,6 +584,7 @@ cancelOrderBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
 
 
 
