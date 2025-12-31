@@ -258,51 +258,64 @@ function computeDiscount(coupon, total) {
     ? Math.round(total * (coupon.amount / 100))
     : coupon.amount;
 }
-function applyCouponClientSide(code) {
+
+
+       function applyCouponClientSide(code) {
   couponStatus.textContent = "";
   const coupon = findMatchingCoupon(code);
   
+  // 1. Check if coupon exists
   if (!coupon) {
     currentDiscount = 0;
     appliedCoupon = null;
-    couponStatus.className = "text-xs text-red-500 mt-1";
-    couponStatus.textContent = "Invalid or expired coupon.";
+    showAlert("error", "❌ Invalid Coupon Code!");
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Invalid coupon code.</span>`;
     return;
   }
 
-  // 1. Calculate the product total (subtotal)
-  const productTotal = cartItems.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
+  // 2. CHECK USAGE LIMIT (The part you were missing)
+  // Logic: If usageLimit is set in Firestore and 'used' is equal or greater, block it.
+  const usageLimit = coupon.usageLimit || 1; // Default to 1 if not set
+  const timesUsed = coupon.used || 0;
 
-  // 2. CHECK MINIMUM PURCHASE LIMIT
-  // This looks for 'minPurchase' in Firestore, but defaults to 500 if the field is missing
+  if (timesUsed >= usageLimit) {
+    currentDiscount = 0;
+    appliedCoupon = null;
+    showAlert("error", "🚫 This coupon has already been used!");
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Coupon Expired/Used Up.</span>`;
+    return;
+  }
+
+  // 3. CHECK MINIMUM PURCHASE (500 BDT)
+  const productTotal = cartItems.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
   const minRequired = coupon.minPurchase || 500; 
 
   if (productTotal < minRequired) {
     currentDiscount = 0;
     appliedCoupon = null;
-    couponStatus.className = "text-xs text-red-500 mt-1";
-    couponStatus.textContent = `❌ Minimum purchase of ৳${minRequired} required. (Your total: ৳${productTotal})`;
-    showAlert("error", `Minimum ৳${minRequired} required.`);
+    showAlert("error", `Minimum ৳${minRequired} required!`);
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Add ৳${minRequired - productTotal} more to use this.</span>`;
     return;
   }
 
-  // 3. Check if coupon applies to these specific items (SKU check)
+  // 4. Check SKU applicability
   if (!couponAppliesToCart(coupon, cartItems)) {
     currentDiscount = 0;
     appliedCoupon = null;
-    couponStatus.className = "text-xs text-red-500 mt-1";
-    couponStatus.textContent = "Coupon not valid for these items.";
+    showAlert("error", "Not applicable to these items.");
     return;
   }
 
-  // 4. If all checks pass, apply the discount
+  // 5. SUCCESS
   currentDiscount = computeDiscount(coupon, productTotal);
   appliedCoupon = coupon;
   
-  couponStatus.className = "text-xs text-green-600 mt-1";
-  couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
-  showAlert("success", `Coupon ${coupon.code} applied!`);
+  couponStatus.innerHTML = `<span class="text-green-600 font-bold">✅ Saved ৳${currentDiscount} with ${coupon.code}</span>`;
+  showAlert("success", "Coupon Applied Successfully!");
 }
+
+
+       
 applyCouponBtn.addEventListener("click", async () => {
   applyCouponBtn.disabled = true;
   applyCouponBtn.innerHTML =
@@ -562,5 +575,6 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
