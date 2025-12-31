@@ -265,63 +265,46 @@ function applyCouponClientSide(code) {
   couponStatus.textContent = "";
   const coupon = findMatchingCoupon(code);
   
-  // 1. Check if coupon exists
-  if (!coupon) {
+  // 1. Check if coupon exists and is ACTIVE
+  if (!coupon || coupon.status !== "active") {
     currentDiscount = 0;
     appliedCoupon = null;
-    showAlert("error", "❌ Invalid Coupon Code!");
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Invalid coupon code.</span>`;
+    showAlert("error", "❌ Coupon is invalid or deactivated.");
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Coupon not available.</span>`;
     return;
   }
 
-  // 2. CHECK USAGE LIMIT (Dynamic from Admin Panel)
-  // If usageLimit is not set in Admin Panel, it will default to 999999 (unlimited)
-  const usageLimit = coupon.usageLimit !== undefined ? coupon.usageLimit : 999999;
+  // 2. CHECK USAGE LIMIT
+  const usageLimit = coupon.usageLimit || 999999;
   const timesUsed = coupon.used || 0;
 
   if (timesUsed >= usageLimit) {
     currentDiscount = 0;
     appliedCoupon = null;
-    showAlert("error", "🚫 Coupon usage limit reached!");
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">This coupon is no longer available.</span>`;
+    showAlert("error", "🚫 This coupon has reached its usage limit.");
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Coupon Expired.</span>`;
     return;
   }
 
-  // 3. CHECK MINIMUM PURCHASE (Dynamic from Admin Panel)
+  // 3. CHECK MINIMUM PURCHASE (Dynamic)
   const productTotal = cartItems.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
-  
-  // If minPurchase is not set or is 0 in Admin Panel, no requirement is needed
   const minRequired = coupon.minPurchase || 0; 
 
   if (productTotal < minRequired) {
     currentDiscount = 0;
     appliedCoupon = null;
-    showAlert("error", `Minimum ৳${minRequired} required!`);
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">You need ৳${minRequired - productTotal} more to use this code.</span>`;
+    showAlert("error", `Minimum ৳${minRequired} required.`);
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Add ৳${minRequired - productTotal} more to unlock.</span>`;
     return;
   }
 
-  // 4. Check SKU applicability (Product matching)
-  if (!couponAppliesToCart(coupon, cartItems)) {
-    currentDiscount = 0;
-    appliedCoupon = null;
-    showAlert("error", "Not applicable to these items.");
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Not valid for items in your cart.</span>`;
-    return;
-  }
-
-  // 5. SUCCESS - Everything is valid based on Admin Panel settings
+  // 4. Success - Hold the coupon in memory (Do not update database yet!)
   currentDiscount = computeDiscount(coupon, productTotal);
   appliedCoupon = coupon;
   
   couponStatus.innerHTML = `<span class="text-green-600 font-bold">✅ Coupon Applied! Saved ৳${currentDiscount}</span>`;
-  showAlert("success", "Coupon Applied Successfully!");
+  showAlert("success", "Coupon Applied!");
 }
-
-
-
-
-
 
 
 
@@ -539,6 +522,12 @@ try {
   // Update coupon usage if applied
   if (appliedCoupon && appliedCoupon.code) {
     try {
+  // 1. First, save the actual customer order
+  await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
+
+  // 2. NEW UPDATED COUPON LOGIC (Replaces the old block)
+  if (appliedCoupon && appliedCoupon.code) {
+    try {
       const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
       const snap = await getDoc(couponRef);
 
@@ -546,18 +535,36 @@ try {
         const data = snap.data();
         const updatedCodes = (data.validCodes || []).map(c => {
           if (c.code === appliedCoupon.code) {
-            const newUsed = (c.used || 0) + 1;
-            return { ...c, used: newUsed };
+            const newUsedCount = (c.used || 0) + 1;
+            const limit = c.usageLimit || 999999;
+            
+            return { 
+              ...c, 
+              used: newUsedCount,
+              // AUTO-DEACTIVATE: This is the new part for your Admin Panel
+              status: newUsedCount >= limit ? "inactive" : c.status 
+            };
           }
           return c;
         });
 
         await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
-        console.log(`🔥 Coupon ${appliedCoupon.code} used count increased.`);
+        console.log(`🔥 Coupon ${appliedCoupon.code} updated in Admin Panel.`);
       }
     } catch (err) {
-      console.error("❌ Failed to update coupon usage:", err);
+      console.error("❌ Admin Panel Sync Error:", err);
     }
+  }
+
+  // Final success actions
+  localStorage.removeItem(CART_STORAGE_KEY);
+  showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
+  setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
+
+} catch (err) {
+  console.error(err);
+  showAlert("error", "❌ Failed to save order!");
+}
   }
 
   // Final success actions
@@ -586,6 +593,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
