@@ -261,12 +261,45 @@ function computeDiscount(coupon, total) {
 function applyCouponClientSide(code) {
   couponStatus.textContent = "";
   const coupon = findMatchingCoupon(code);
-  if (!coupon) return (couponStatus.textContent = "Invalid or expired coupon.");
-  if (!couponAppliesToCart(coupon, cartItems))
-    return (couponStatus.textContent = "Coupon not valid for these items.");
-  const productTotal = cartItems.reduce((s,i)=>s+(i.price*i.qty),0);
+  
+  if (!coupon) {
+    currentDiscount = 0;
+    appliedCoupon = null;
+    couponStatus.className = "text-xs text-red-500 mt-1";
+    couponStatus.textContent = "Invalid or expired coupon.";
+    return;
+  }
+
+  // 1. Calculate the product total (subtotal)
+  const productTotal = cartItems.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
+
+  // 2. CHECK MINIMUM PURCHASE LIMIT
+  // This looks for 'minPurchase' in Firestore, but defaults to 500 if the field is missing
+  const minRequired = coupon.minPurchase || 500; 
+
+  if (productTotal < minRequired) {
+    currentDiscount = 0;
+    appliedCoupon = null;
+    couponStatus.className = "text-xs text-red-500 mt-1";
+    couponStatus.textContent = `❌ Minimum purchase of ৳${minRequired} required. (Your total: ৳${productTotal})`;
+    showAlert("error", `Minimum ৳${minRequired} required.`);
+    return;
+  }
+
+  // 3. Check if coupon applies to these specific items (SKU check)
+  if (!couponAppliesToCart(coupon, cartItems)) {
+    currentDiscount = 0;
+    appliedCoupon = null;
+    couponStatus.className = "text-xs text-red-500 mt-1";
+    couponStatus.textContent = "Coupon not valid for these items.";
+    return;
+  }
+
+  // 4. If all checks pass, apply the discount
   currentDiscount = computeDiscount(coupon, productTotal);
   appliedCoupon = coupon;
+  
+  couponStatus.className = "text-xs text-green-600 mt-1";
   couponStatus.textContent = `✅ Coupon ${coupon.code} applied — saved ৳${currentDiscount}`;
   showAlert("success", `Coupon ${coupon.code} applied!`);
 }
@@ -529,4 +562,5 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
