@@ -532,12 +532,14 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
               return {
                 ...c,
                 used: newUsedCount,
+                // The Logic: If new count hits the limit, set to inactive
                 status: newUsedCount >= limit ? "inactive" : (c.status || "active")
               };
             }
             return c;
           });
           await setDoc(couponRef, { ...data, validCodes: updatedCodes }, { merge: true });
+          console.log(`🔥 Coupon ${appliedCoupon.code} updated.`);
         }
       } catch (err) {
         console.error("Coupon Sync Error:", err);
@@ -570,6 +572,7 @@ cancelOrderBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
 
 
 
