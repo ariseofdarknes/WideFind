@@ -520,12 +520,11 @@ try {
   await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
 
   // Update coupon usage if applied
-  if (appliedCoupon && appliedCoupon.code) {
-    try {
-  // 1. First, save the actual customer order
+// save to Firestore
+try {
   await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), order);
 
-  // 2. NEW UPDATED COUPON LOGIC (Replaces the old block)
+  // NEW UPDATED COUPON LOGIC
   if (appliedCoupon && appliedCoupon.code) {
     try {
       const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
@@ -541,8 +540,8 @@ try {
             return { 
               ...c, 
               used: newUsedCount,
-              // AUTO-DEACTIVATE: This is the new part for your Admin Panel
-              status: newUsedCount >= limit ? "inactive" : c.status 
+              // This is the specific line that auto-disables the coupon
+              status: newUsedCount >= limit ? "inactive" : (c.status || "active")
             };
           }
           return c;
@@ -556,6 +555,17 @@ try {
     }
   }
 
+  // Final success actions (Clear cart, redirect, etc.)
+  localStorage.removeItem(CART_STORAGE_KEY);
+  showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
+  setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
+
+} catch (err) {
+  console.error(err);
+  showAlert("error", "❌ Failed to save order!");
+}
+
+    
   // Final success actions
   localStorage.removeItem(CART_STORAGE_KEY);
   showAlert("success", `✅ Order placed successfully! ID: ${orderId}`);
@@ -593,6 +603,7 @@ cancelOrderBtn.addEventListener("click",()=>{
 
 </body>
 </html>
+
 
 
 
