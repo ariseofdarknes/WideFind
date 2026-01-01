@@ -34,88 +34,142 @@
             gap: 15px;
         }
 
+        /* Search Bar Styles */
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px 45px 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .search-box:focus {
+            border-color: #ff6600;
+            box-shadow: 0 0 8px rgba(255, 102, 0, 0.2);
+        }
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+            pointer-events: none;
+        }
 
-/* Modern Add to Cart Alert - Bottom Middle */
-/*.cart-alert {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: #000000; /* Professional Black */
-    /*color: #ffffff;
-    padding: 12px 25px;
-    border-radius: 8px;
-    border-bottom: 4px solid #ff0000; /* Professional Red Accent */
-  /*  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    font-weight: 600;
-}
-.cart-alert.show {
-    transform: translateX(-50%) translateY(0);
-}
-*/
-/* 1. Make the whole card feel clickable */
-.product-card {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-.product-card:hover {
-    transform: translateY(-5px); /* Optional: adds a nice lift effect */
-}
+        /* Product Status Badges */
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .status-stockout {
+            background: #dc3545;
+            color: white;
+        }
+        .status-limited {
+            background: #9c27b0;
+            color: white;
+        }
+        .status-flashsell {
+            background: linear-gradient(135deg, #ff6600, #ff9500);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
 
-/* 2. Style the 'Add to Cart' button (replaces old View Details) */
-.product-card .btn-buy {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    background-color: #ff6600; /* Your brand orange */
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.2s;
-    
-    /* CRITICAL: This ensures the button works even though the card is clickable */
-    position: relative; 
-    z-index: 10; 
-}
+        /* Product Card Position Relative for Badge */
+        .product-card {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
 
-.product-card .btn-buy:hover {
-    background-color: #e65c00; /* Darker orange on hover */
-}
+        .product-card .btn-buy {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #ff6600;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+            position: relative; 
+            z-index: 10; 
+        }
 
-/* 3. High-Quality Modern Alert (Red & Black) */
-.cart-alert {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: #1a1a1a; /* Sleek Black */
-    color: #ffffff;
-    padding: 14px 28px;
-    border-radius: 12px;
-    border-bottom: 4px solid #ff0000; /* Professional Red */
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-    z-index: 10001;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    font-size: 15px;
-}
+        .product-card .btn-buy:hover {
+            background-color: #e65c00;
+        }
 
-.cart-alert.show {
-    transform: translateX(-50%) translateY(0);
-}
-      
+        /* Disable button for stock out */
+        .product-card .btn-buy:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .cart-alert {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border-bottom: 4px solid #ff0000;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            font-size: 15px;
+        }
+
+        .cart-alert.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .search-container {
+                max-width: 100%;
+                padding: 0 15px;
+                margin-bottom: 20px;
+            }
+            .status-badge {
+                font-size: 9px;
+                padding: 4px 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -150,6 +204,12 @@
     </nav>
 
     <main class="container">
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-box" placeholder="🔍 Search products by name or SKU...">
+            <span class="search-icon">🔍</span>
+        </div>
+
         <h2 id="product-section-title">Popular Products</h2>
         <div class="product-grid" id="product-list-container">
             <p style="text-align:center; color:#999;">Loading products...</p>
@@ -189,6 +249,8 @@
     const appId = "WideFind";
     const CART_STORAGE_KEY = 'widefindCart';
 
+    let allProductsCache = []; // Store all products for search
+
     // Update cart count badge
     function updateCartCount() {
         try {
@@ -200,56 +262,55 @@
         }
     }
 
-// 1. High Quality Modern Notification Function
-function showCartNotification(message) {
-    let alertBox = document.getElementById('custom-cart-alert');
-    if (!alertBox) {
-        alertBox = document.createElement('div');
-        alertBox.id = 'custom-cart-alert';
-        alertBox.className = 'cart-alert';
-        alertBox.innerHTML = `<span>🛒</span> <span id="alert-msg"></span>`;
-        document.body.appendChild(alertBox);
-    }
-    document.getElementById('alert-msg').textContent = message;
-    alertBox.classList.add('show');
-    setTimeout(() => alertBox.classList.remove('show'), 3000);
-}
-
-// 2. Direct Add to Cart Function (without leaving page)
-window.addToCartDirect = function(event, productDataEncoded) {
-    event.stopPropagation(); // CRITICAL: Stops the card click from opening product details
-    
-    try {
-        const product = JSON.parse(decodeURIComponent(productDataEncoded));
-        let cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
-        
-        const itemId = `${product.id}-std`;
-        const existingItem = cart.find(i => i.itemId === itemId);
-
-        if (existingItem) {
-            existingItem.qty = (Number(existingItem.qty) || 0) + 1;
-        } else {
-            cart.push({
-                itemId: itemId,
-                sku: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                qty: 1,
-                size: "Standard"
-            });
+    // High Quality Modern Notification Function
+    function showCartNotification(message) {
+        let alertBox = document.getElementById('custom-cart-alert');
+        if (!alertBox) {
+            alertBox = document.createElement('div');
+            alertBox.id = 'custom-cart-alert';
+            alertBox.className = 'cart-alert';
+            alertBox.innerHTML = `<span>🛒</span> <span id="alert-msg"></span>`;
+            document.body.appendChild(alertBox);
         }
-
-        localStorage.setItem('widefindCart', JSON.stringify(cart));
-        updateCartCount(); // Refresh the header badge
-        showCartNotification(`${product.name} added to cart!`);
-    } catch (e) {
-        console.error("Cart error:", e);
+        document.getElementById('alert-msg').textContent = message;
+        alertBox.classList.add('show');
+        setTimeout(() => alertBox.classList.remove('show'), 3000);
     }
-};
 
-    
-    // Load site settings (categories, banners)
+    // Direct Add to Cart Function
+    window.addToCartDirect = function(event, productDataEncoded) {
+        event.stopPropagation();
+        
+        try {
+            const product = JSON.parse(decodeURIComponent(productDataEncoded));
+            let cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
+            
+            const itemId = `${product.id}-std`;
+            const existingItem = cart.find(i => i.itemId === itemId);
+
+            if (existingItem) {
+                existingItem.qty = (Number(existingItem.qty) || 0) + 1;
+            } else {
+                cart.push({
+                    itemId: itemId,
+                    sku: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    qty: 1,
+                    size: "Standard"
+                });
+            }
+
+            localStorage.setItem('widefindCart', JSON.stringify(cart));
+            updateCartCount();
+            showCartNotification(`${product.name} added to cart!`);
+        } catch (e) {
+            console.error("Cart error:", e);
+        }
+    };
+
+    // Load site settings
     async function loadSiteSettings() {
         try {
             const settingsRef = doc(db, `artifacts/${appId}/public/data/config/siteSettings`);
@@ -287,7 +348,6 @@ window.addToCartDirect = function(event, productDataEncoded) {
                         bannerSlider.appendChild(slide);
                     });
                     
-                    // Auto-rotate banners
                     if (banners.length > 1) {
                         let currentBanner = 0;
                         setInterval(() => {
@@ -304,6 +364,76 @@ window.addToCartDirect = function(event, productDataEncoded) {
         }
     }
 
+    // Render products
+    function renderProducts(products) {
+        const container = document.getElementById('product-list-container');
+        container.innerHTML = '';
+
+        if (products.length === 0) {
+            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found.</p>`;
+            return;
+        }
+
+        products.forEach(product => {
+            // Calculate discount percentage
+            let displayPercent = 0;
+            if (product.discountPercent && Number(product.discountPercent) > 0) {
+                displayPercent = Math.round(Number(product.discountPercent));
+            } else if (product.discountAmount && Number(product.originalPrice) > 0) {
+                displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
+            }
+
+            // Get first image
+            let firstImage = '';
+            if (Array.isArray(product.images) && product.images.length > 0) {
+                firstImage = product.images[0];
+            } else if (typeof product.images === 'string' && product.images.trim()) {
+                firstImage = product.images.split(',')[0].trim();
+            }
+
+            // Status badge HTML
+            let statusBadgeHTML = '';
+            if (product.status === 'stockout') {
+                statusBadgeHTML = '<div class="status-badge status-stockout">Out of Stock</div>';
+            } else if (product.status === 'limited') {
+                statusBadgeHTML = '<div class="status-badge status-limited">Limited</div>';
+            } else if (product.status === 'flashsell') {
+                statusBadgeHTML = '<div class="status-badge status-flashsell">⚡ Flash Sale</div>';
+            }
+
+            // Encode data for Add to Cart
+            const prodInfo = encodeURIComponent(JSON.stringify({
+                id: product.id,
+                name: product.name || '',
+                price: product.price || 0,
+                image: getValidImageURL(firstImage)
+            }));
+
+            // Create the Card
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.onclick = () => { window.location.href = `product.html?id=${product.id}`; };
+
+            const isStockOut = product.status === 'stockout';
+            const buttonHTML = isStockOut 
+                ? '<button class="btn-buy" disabled>Out of Stock</button>'
+                : `<button onclick="addToCartDirect(event, '${prodInfo}')" class="btn-buy">Add to Cart</button>`;
+
+            card.innerHTML = `
+                ${statusBadgeHTML}
+                <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
+                <h3 title="${product.name || ''}">${product.name || ''}</h3>
+                <div class="price-container">
+                    <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
+                    ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+                    ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
+                </div>
+                ${buttonHTML}
+            `;
+            container.appendChild(card);
+        });
+    }
+
     // Load products
     async function loadProducts(category = "popular") {
         const container = document.getElementById('product-list-container');
@@ -316,6 +446,9 @@ window.addToCartDirect = function(event, productDataEncoded) {
 
             let products = [];
             snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+            
+            // Cache all products for search
+            allProductsCache = products;
 
             if (category === "popular") {
                 products = products.filter(p => p.isPopular === true);
@@ -325,61 +458,33 @@ window.addToCartDirect = function(event, productDataEncoded) {
                 title.textContent = `${category} Collection`;
             }
 
-            container.innerHTML = '';
-
-            if (products.length === 0) {
-                container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found in this category.</p>`;
-                return;
-            }
-
-     products.forEach(product => {
-                // 1. Calculate discount percentage (FROM OLD CODE)
-                let displayPercent = 0;
-                if (product.discountPercent && Number(product.discountPercent) > 0) {
-                    displayPercent = Math.round(Number(product.discountPercent));
-                } else if (product.discountAmount && Number(product.originalPrice) > 0) {
-                    displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
-                }
-
-                // 2. Get first image (FROM OLD CODE)
-                let firstImage = '';
-                if (Array.isArray(product.images) && product.images.length > 0) {
-                    firstImage = product.images[0];
-                } else if (typeof product.images === 'string' && product.images.trim()) {
-                    firstImage = product.images.split(',')[0].trim();
-                }
-
-                // 3. Encode data for Add to Cart (NEW LOGIC)
-                const prodInfo = encodeURIComponent(JSON.stringify({
-                    id: product.id,
-                    name: product.name || '',
-                    price: product.price || 0,
-                    image: typeof getValidImageURL === 'function' ? getValidImageURL(firstImage) : firstImage
-                }));
-
-                // 4. Create the Card
-                const card = document.createElement("div");
-                card.className = "product-card";
-                
-                // ACTION: Clicking the card opens details (NEW LOGIC)
-                card.onclick = () => { window.location.href = `product.html?id=${product.id}`; };
-
-                card.innerHTML = `
-                    <img src="${typeof getValidImageURL === 'function' ? getValidImageURL(firstImage) : firstImage}" alt="${product.name || 'Product'}">
-                    <h3 title="${product.name || ''}">${product.name || ''}</h3>
-                    <div class="price-container">
-                        <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-                        ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-                        ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-                    </div>
-                    <button onclick="addToCartDirect(event, '${prodInfo}')" class="btn-buy">Add to Cart</button>
-                `;
-                container.appendChild(card);
-            });
+            renderProducts(products);
         } catch (error) {
             console.error('Error loading products:', error);
             container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;padding:40px;">Failed to load products. Please refresh the page.</p>`;
         }
+    }
+
+    // Search functionality
+    function handleSearch(query) {
+        const searchTerm = query.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            // If search is empty, reload current category
+            const activeCategory = document.querySelector('.category-item.active');
+            if (activeCategory) {
+                loadProducts(activeCategory.dataset.category);
+            }
+            return;
+        }
+
+        const filtered = allProductsCache.filter(p => 
+            (p.name || '').toLowerCase().includes(searchTerm) ||
+            (p.sku || '').toLowerCase().includes(searchTerm)
+        );
+
+        document.getElementById('product-section-title').textContent = `Search Results (${filtered.length})`;
+        renderProducts(filtered);
     }
 
     // Initialize page
@@ -388,21 +493,32 @@ window.addToCartDirect = function(event, productDataEncoded) {
         await loadSiteSettings();
         await loadProducts("popular");
 
-        // Category click handlers (use event delegation)
+        // Search input handler
+        const searchInput = document.getElementById('search-input');
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                handleSearch(e.target.value);
+            }, 300); // Debounce for 300ms
+        });
+
+        // Category click handlers
         document.getElementById('category-menu').addEventListener('click', (e) => {
             if (e.target.classList.contains('category-item')) {
                 e.preventDefault();
                 document.querySelectorAll(".category-item").forEach(b => b.classList.remove("active"));
                 e.target.classList.add("active");
+                searchInput.value = ''; // Clear search
                 loadProducts(e.target.dataset.category);
             }
         });
 
-        // Update cart count when returning to page
         window.addEventListener('focus', updateCartCount);
     });
 </script>
-<!-- 🌐 Floating WhatsApp & Facebook Support Buttons -->
+
+<!-- Floating WhatsApp & Facebook Support Buttons -->
 <style>
   .floating-support {
     position: fixed;
@@ -442,7 +558,3 @@ window.addToCartDirect = function(event, productDataEncoded) {
 
 </body>
 </html>
-
-
-
-
