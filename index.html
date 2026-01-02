@@ -34,36 +34,61 @@
             gap: 15px;
         }
 
-        /* Search Bar Styles */
-        .search-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto 30px;
-        }
-        .search-box {
-            width: 100%;
-            padding: 12px 45px 12px 20px;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            font-size: 15px;
-            font-family: 'Poppins', sans-serif;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        .search-box:focus {
-            border-color: #ff6600;
-            box-shadow: 0 0 8px rgba(255, 102, 0, 0.2);
-        }
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-            font-size: 18px;
-            pointer-events: none;
-        }
+      /* --- UPDATED SEARCH BAR CSS --- */
+
+/* Align the container to the right */
+.search-wrapper {
+    display: flex;
+    justify-content: flex-end; /* Pushes to the right */
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+    max-width: 280px; /* Small professional width */
+    margin: 0; /* Remove auto margins */
+}
+
+.search-box {
+    width: 100%;
+    padding: 10px 40px 10px 15px; /* Compact padding */
+    border: 1.5px solid #ececec;
+    border-radius: 8px; /* Square-round look is more modern */
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: all 0.3s ease;
+    background-color: #fcfcfc;
+}
+
+.search-box:focus {
+    border-color: #ff6600;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bbb;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+/* Responsive: Full width on mobile devices */
+@media (max-width: 768px) {
+    .search-wrapper {
+        justify-content: center; /* Center on mobile for better thumb reach */
+        padding: 0 15px;
+    }
+    .search-container {
+        max-width: 100%; /* Take full width on small screens */
+    }
+}
 
         /* Product Status Badges */
         .status-badge {
@@ -203,18 +228,19 @@
         </div>
     </nav>
 
-    <main class="container">
-        <!-- Search Bar -->
+<main class="container">
+    <div class="search-wrapper">
         <div class="search-container">
-            <input type="text" id="search-input" class="search-box" placeholder="🔎 Search Products by Name ...">
-            <span class="search-icon">  </span>
+            <input type="text" id="search-input" class="search-box" placeholder="Search products...">
+            <span class="search-icon">🔎</span>
         </div>
+    </div>
 
-        <h2 id="product-section-title">Popular Products</h2>
-        <div class="product-grid" id="product-list-container">
-            <p style="text-align:center; color:#999;">Loading products...</p>
-        </div>
-    </main>
+    <h2 id="product-section-title">Popular Products</h2>
+    <div class="product-grid" id="product-list-container">
+        <p style="text-align:center; color:#999;">Loading products...</p>
+    </div>
+</main>
 
     <footer class="site-footer" style="text-align: center; padding: 20px; background: #fff; margin-top: 40px;">
         <p>© 2025 WideFind. All Rights Reserved.</p>
@@ -558,5 +584,6 @@
 
 </body>
 </html>
+
 
 
