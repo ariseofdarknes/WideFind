@@ -127,17 +127,9 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function getValidImageURL(url) {
-    if (!url) return "https://placehold.co/600x600?text=No+Image";
-    if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-        const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-        if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
-    }
-    return url;
-}
-
+/* --- 1. CONFIGURATION & INITIALIZATION --- */
 const firebaseConfig = {
     apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
     authDomain: "my-ecom-site-168ab.firebaseapp.com",
@@ -153,10 +145,21 @@ const appId = "WideFind";
 const CART_STORAGE_KEY = 'widefindCart';
 
 let currentQty = 1;
+let stockLimit = 0;
+
+/* --- 2. UTILITY FUNCTIONS --- */
+function getValidImageURL(url) {
+    if (!url) return "https://placehold.co/600x600?text=No+Image";
+    if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+        const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+        if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+    }
+    return url;
+}
 
 function getCart() {
     try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]"); }
-    catch(e){ console.error(e); return []; }
+    catch(e){ return []; }
 }
 
 function saveCart(cart){ 
@@ -165,13 +168,10 @@ function saveCart(cart){
 }
 
 function updateCartCount() {
-    try {
-        const cart = getCart();
-        const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
-        document.getElementById('cart-count').textContent = totalItems;
-    } catch (e) {
-        console.error('Error updating cart count:', e);
-    }
+    const cart = getCart();
+    const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+    const badge = document.getElementById('cart-count');
+    if(badge) badge.textContent = totalItems;
 }
 
 function getQueryParam(name) {
@@ -179,6 +179,7 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
+/* --- 3. PRODUCT LOADING LOGIC --- */
 const productId = getQueryParam('id') || getQueryParam('sku');
 if (!productId) {
     document.getElementById('product-name').innerText = 'Product not specified';
@@ -190,26 +191,33 @@ async function loadProduct(productId) {
     try {
         const ref = doc(db, `artifacts/${appId}/public/data/products/${productId}`);
         const snap = await getDoc(ref);
+        
         if (!snap.exists()) {
             document.getElementById('product-name').innerText = 'Product not found';
             return;
         }
-        const p = snap.data();
-// This connects the Admin Panel stock value to this page
-stockLimit = Number(p.stock) || 0; 
-
-// Optional: Show the stock to the user so they know how many are left
-const stockInfo = document.createElement('p');
-stockInfo.style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
-stockInfo.innerHTML = `Availability: <span style="color: ${stockLimit > 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${stockLimit > 0 ? stockLimit + ' in stock' : 'Out of Stock'}</span>`;
-document.getElementById('product-price').parentElement.appendChild(stockInfo);
-
         
-        if (typeof p.images === "string") {
-            p.images = p.images.split(',').map(i => i.trim()).filter(i => i);
-        }
+        const p = snap.data();
+        stockLimit = Number(p.stock) || 0; 
 
-        // Image gallery
+        // Update UI with product data
+        document.getElementById("product-name").innerText = p.name || '';
+        document.getElementById("product-description").innerText = p.description || '';
+        document.getElementById("product-price").innerText = `৳${Number(p.price || 0).toFixed(0)}`;
+
+        // Stock Badge Logic
+        const priceContainer = document.getElementById('product-price').parentElement;
+        const existingStock = document.getElementById('stock-status');
+        if (existingStock) existingStock.remove();
+        
+        const stockInfo = document.createElement('p');
+        stockInfo.id = "stock-status";
+        stockInfo.style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
+        stockInfo.innerHTML = `Availability: <span style="color: ${stockLimit > 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${stockLimit > 0 ? stockLimit + ' in stock' : 'Out of Stock'}</span>`;
+        priceContainer.appendChild(stockInfo);
+
+        // Image Gallery
+        if (typeof p.images === "string") p.images = p.images.split(',').map(i => i.trim()).filter(i => i);
         const mainImg = document.getElementById("product-image");
         const thumbList = document.getElementById("thumbnail-list");
         thumbList.innerHTML = '';
@@ -220,61 +228,23 @@ document.getElementById('product-price').parentElement.appendChild(stockInfo);
                 const thumb = document.createElement('img');
                 thumb.src = getValidImageURL(url);
                 if (index === 0) thumb.classList.add('active');
-                thumb.addEventListener('click', () => {
+                thumb.onclick = () => {
                     document.querySelectorAll('.thumbnail-list img').forEach(img => img.classList.remove('active'));
                     thumb.classList.add('active');
                     mainImg.src = getValidImageURL(url);
-                });
+                };
                 thumbList.appendChild(thumb);
             });
-        } else {
-            mainImg.src = 'https://placehold.co/600x600?text=No+Image';
         }
 
-        document.getElementById("product-name").innerText = p.name || '';
-        document.getElementById("product-description").innerText = p.description || '';
-        document.getElementById("product-price").innerText = `৳${Number(p.price || 0).toFixed(0)}`;
-
+        // Original Price / Discount Logic
         if (p.originalPrice) {
-            document.getElementById("product-original").style.display = 'inline-block';
-            document.getElementById("product-original").innerText = `৳${Number(p.originalPrice).toFixed(0)}`;
-        } else {
-            document.getElementById("product-original").style.display = 'none';
+            const orig = document.getElementById("product-original");
+            orig.style.display = 'inline-block';
+            orig.innerText = `৳${Number(p.originalPrice).toFixed(0)}`;
         }
 
-        // Discount display
-        let displayPercent = 0;
-        if (p.discountPercent && Number(p.discountPercent) > 0) displayPercent = Math.round(Number(p.discountPercent));
-        else if (p.discountAmount && p.originalPrice && Number(p.originalPrice) > 0)
-            displayPercent = Math.round((Number(p.discountAmount) / Number(p.originalPrice)) * 100);
-
-        if (displayPercent > 0) {
-            const dEl = document.getElementById('product-discount');
-            dEl.style.display = 'inline-block';
-            dEl.innerText = `-${displayPercent}%`;
-        } else {
-            document.getElementById('product-discount').style.display = 'none';
-        }
-
-        // Size options
-        const sizes = p.sizes || [];
-        const sizeOptions = document.getElementById('size-options');
-        sizeOptions.innerHTML = '';
-        if (sizes.length) {
-            const select = document.createElement('select');
-            select.id = 'size-select';
-            sizes.forEach(s => {
-                const o = document.createElement('option'); 
-                o.value = s; 
-                o.textContent = s;
-                select.appendChild(o);
-            });
-            sizeOptions.appendChild(select);
-        } else {
-            sizeOptions.innerHTML = '<small class="text-gray-500">No size selection</small>';
-        }
-        
-// --- Quantity Logic (Corrected) ---
+        // Quantity Control Logic
         document.getElementById('qty-minus').onclick = () => {
             if (currentQty > 1) {
                 currentQty--;
@@ -291,39 +261,37 @@ document.getElementById('product-price').parentElement.appendChild(stockInfo);
             }
         };
 
+        // Add to Cart Logic
+        const cartBtn = document.getElementById('add-to-cart');
         if (stockLimit <= 0) {
-            const btn = document.getElementById('add-to-cart');
-            btn.disabled = true;
-            btn.textContent = 'Out of Stock';
-            btn.style.background = '#999';
+            cartBtn.disabled = true;
+            cartBtn.textContent = 'Out of Stock';
+            cartBtn.style.background = '#999';
+        } else {
+            cartBtn.onclick = () => {
+                const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
+                const cart = getCart();
+                const item = {
+                    sku: productId,
+                    name: p.name || '',
+                    price: Number(p.price || 0),
+                    qty: currentQty,
+                    size: sizeVal,
+                    image: (p.images && p.images[0]) ? p.images[0] : ''
+                };
+                
+                const existing = cart.find(ci => ci.sku === item.sku && ci.size === item.size);
+                if (existing) existing.qty += item.qty;
+                else cart.push(item);
+                
+                saveCart(cart);
+                cartBtn.textContent = '✓ Added!';
+                setTimeout(() => cartBtn.textContent = 'Add to Cart', 2000);
+            };
         }
-        
-       // ... (inside the first loadProduct function)
-        document.getElementById('add-to-cart').addEventListener('click', () => {
-            const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
-            addToCart({
-                sku: p.sku || productId,
-                itemId: String(Date.now()) + '-' + Math.floor(Math.random()*9999),
-                name: p.name || '',
-                price: Number(p.price || 0),
-                qty: currentQty,
-                size: sizeVal,
-                image: (p.images && p.images[0]) ? p.images[0] : ''
-            });
-            
-            const btn = document.getElementById('add-to-cart');
-            const originalText = btn.textContent;
-            btn.textContent = '✓ Added to Cart!';
-            btn.style.background = '#28a745';
-            
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.background = '#ff6600';
-            }, 2000);
-        });
 
-        // 🔥 ADD THIS LINE HERE: Load related products after main product is done
-        loadRandomProductsFromFirestore();
+        // Load Related Products
+        loadRandomProducts();
 
     } catch (err) {
         console.error(err);
@@ -331,60 +299,38 @@ document.getElementById('product-price').parentElement.appendChild(stockInfo);
     }
 }
 
-// Keep your existing addToCart and updateCartCount functions here...
-function addToCart(item) {
-    const cart = getCart();
-    const existing = cart.find(ci => ci.sku === item.sku && (ci.size || '') === (item.size || ''));
-    if (existing) { existing.qty = (existing.qty || 0) + item.qty; } 
-    else { cart.push(item); }
-    saveCart(cart);
-}
-
-// 🔥 NEW COMBINED RELATED PRODUCTS FUNCTION (Uses the same 'db' as above)
-async function loadRandomProductsFromFirestore() {
+/* --- 4. RELATED PRODUCTS LOGIC --- */
+async function loadRandomProducts() {
     try {
-        // We use the 'collection' and 'getDocs' which you should add to the TOP import line
-        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        const productsCol = collection(db, `artifacts/${appId}/public/data/products`);
-        const snap = await getDocs(productsCol);
-
-        let allProducts = [];
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
-            allProducts.push({
-                id: docSnap.id,
-                name: data.name || "Unknown",
-                price: data.price || 0,
-                image: (Array.isArray(data.images) && data.images[0]) ? data.images[0] : "https://placehold.co/300"
-            });
+        const snap = await getDocs(collection(db, `artifacts/${appId}/public/data/products`));
+        let all = [];
+        snap.forEach(d => {
+            const data = d.data();
+            if(d.id !== productId) { // Don't show current product
+                all.push({ id: d.id, ...data });
+            }
         });
 
-        allProducts = allProducts.sort(() => Math.random() - 0.5).slice(0, 18);
+        all = all.sort(() => Math.random() - 0.5).slice(0, 18);
         const container = document.getElementById("randomProducts");
         container.innerHTML = "";
 
-        allProducts.forEach(p => {
-            const item = document.createElement("a");
-            item.href = `product.html?id=${p.id}`;
-            item.className = "product-card-link"; // Use a class for cleaner styling
-            item.style = "border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; text-align:center; text-decoration:none; color:#000; display:block; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition:.3s;";
-            item.innerHTML = `
-                <img src="${p.image}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
-                <h4 style="font-size:15px;margin:8px 0;">${p.name}</h4>
+        all.forEach(p => {
+            const card = document.createElement("a");
+            card.href = `product.html?id=${p.id}`;
+            card.style = "border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; text-align:center; text-decoration:none; color:#000; display:block; transition:.3s;";
+            card.innerHTML = `
+                <img src="${getValidImageURL(p.images ? (Array.isArray(p.images) ? p.images[0] : p.images) : '')}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
+                <h4 style="font-size:14px;margin:8px 0;height:40px;overflow:hidden;">${p.name}</h4>
                 <p style="color:#ff3c00;font-weight:600;">৳${p.price}</p>
             `;
-            container.appendChild(item);
+            container.appendChild(card);
         });
-    } catch (error) {
-        console.error("Error loading related products:", error);
-    }
+    } catch (e) { console.error("Related products error:", e); }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    updateCartCount();
-});
+document.addEventListener('DOMContentLoaded', updateCartCount);
 </script>
-
 
 
 
@@ -454,6 +400,7 @@ loadRandomProductsFromFirestore();
 
 </body>
 </html>
+
 
 
 
