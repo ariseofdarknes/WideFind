@@ -116,8 +116,7 @@
     
    <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 /* ---------------- Firebase Setup ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
@@ -490,16 +489,12 @@ document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').fo
        
 
 /* ---------------- Place Order ---------------- */
-// Add 'updateDoc' to your imports at the very top of your script!
-// import { ..., updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
 document.getElementById("order-form").addEventListener("submit", async ev => {
   ev.preventDefault();
   if (!cartItems.length) return showAlert("error", "Your cart is empty!");
 
   const orderId = "WF" + Date.now();
   
-  // Create the order object
   const order = {
     orderId,
     name: document.getElementById("name").value || "",
@@ -512,7 +507,7 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
     paymentChannel: document.getElementById("payment-channel").value || "",
     senderNumber: document.getElementById("sender-number").value || "",
     transactionId: document.getElementById("transaction-id").value || "",
-    cartItems: cartItems, // Ensure this is a clean array
+    cartItems: cartItems, 
     discount: Number(currentDiscount) || 0,
     timestamp: new Date().toISOString(),
   };
@@ -521,24 +516,33 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
   placeOrderBtn.textContent = "Processing...";
 
   try {
-    // 1. Send to Google Sheet (Optional: move inside try/catch)
-    const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
-    await fetch(scriptURL, { method: "POST", body: JSON.stringify(order), headers: { "Content-Type": "application/json" } }).catch(e => console.log("Sheet error ignored"));
-
-    // 2. Save Order to Firestore (The part that was failing)
-    // We use JSON.parse(JSON.stringify()) to make sure there are no 'undefined' values
+    // 1. SAVE ORDER TO FIRESTORE (High Priority)
     const cleanOrder = JSON.parse(JSON.stringify(order));
     await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), cleanOrder);
 
-    // 3. Update Coupon Usage
+    // 2. INVENTORY STOCK REDUCTION
+    try {
+        // Using Promise.all makes this much faster than a standard 'for' loop
+        const stockUpdates = cartItems.map(item => {
+            const productRef = doc(db, `artifacts/WideFind/public/data/products/${item.sku}`);
+            return updateDoc(productRef, {
+                stock: increment(-Number(item.qty))
+            });
+        });
+        await Promise.all(stockUpdates);
+        console.log("Stock reduced successfully.");
+    } catch (inventoryError) {
+        console.error("Critical: Order placed but stock failed to update:", inventoryError);
+    }
+
+    // 3. UPDATE COUPON USAGE
     if (appliedCoupon && appliedCoupon.code) {
       try {
         const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
         const snap = await getDoc(couponRef);
 
         if (snap.exists()) {
-          const data = snap.data();
-          const updatedCodes = (data.validCodes || []).map(c => {
+          const updatedCodes = (snap.data().validCodes || []).map(c => {
             if (c.code === appliedCoupon.code) {
               const newUsedCount = (c.used || 0) + 1;
               const limit = Number(c.usageLimit) || 999999;
@@ -550,25 +554,30 @@ document.getElementById("order-form").addEventListener("submit", async ev => {
             }
             return c;
           });
-
-          // Use setDoc with merge: true to update ONLY validCodes
           await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
-          console.log("Coupon usage updated successfully.");
         }
       } catch (err) {
-        console.error("Coupon update failed (Permission issue?):", err);
-        // We don't stop the order just because the coupon update failed
+        console.error("Coupon update failed:", err);
       }
     }
 
-    // 4. Success!
+    // 4. SEND TO GOOGLE SHEET (Background Task)
+    // We remove 'await' so the user doesn't wait for Google's slow response
+    const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
+    fetch(scriptURL, { 
+        method: "POST", 
+        body: JSON.stringify(order), 
+        mode: 'no-cors' 
+    }).catch(e => console.log("Sheet error backgrounded"));
+
+    // 5. SUCCESS!
     localStorage.removeItem(CART_STORAGE_KEY);
     showAlert("success", `✅ Order placed! ID: ${orderId}`);
     setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
 
   } catch (err) {
     console.error("Full Firestore Error:", err);
-    showAlert("error", "❌ Failed to save order! Check internet or console.");
+    showAlert("error", "❌ Connection error. Please try again.");
   } finally {
     placeOrderBtn.disabled = false;
     placeOrderBtn.textContent = "Place Order";
@@ -588,6 +597,7 @@ cancelOrderBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
 
 
 
