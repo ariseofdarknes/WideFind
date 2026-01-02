@@ -546,44 +546,88 @@
 
 <!-- Floating WhatsApp & Facebook Support Buttons -->
 <style>
-  .floating-support {
+  /* --- PROFESSIONAL SUPPORT WIDGET --- */
+.support-wrapper {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+}
+
+.support-options {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    z-index: 9999;
-  }
-  .support-btn {
-    display: block;
-    padding: 12px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    border-radius: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: all 0.3s ease;
+}
+
+.support-wrapper.active .support-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.support-item {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
     text-decoration: none;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-    transition: 0.25s ease-in-out;
-  }
-  .whatsapp { background: #25D366; }
-  .whatsapp:hover { background: #1ebd59; }
-  .facebook { background: #1877f2; }
-  .facebook:hover { background: #1164d9; }
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    font-size: 20px;
+}
+
+.help-main-btn {
+    background: #1a1a1a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.help-indicator {
+    background: #ff6600;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 
-<div class="floating-support">
-  <a href="https://wa.me/8801729789847" target="_blank" class="support-btn whatsapp">
-    WhatsApp Support
-  </a>
-  <a href="https://facebook.com/widefind" target="_blank" class="support-btn facebook">
-    Facebook Page
-  </a>
+<div class="support-wrapper" id="supportWrapper">
+    <div class="support-options">
+        <a href="https://wa.me/8801729789847" target="_blank" class="support-item" style="background:#25D366;">💬</a>
+        <a href="https://facebook.com/widefind" target="_blank" class="support-item" style="background:#1877f2;">f</a>
+    </div>
+    <button class="help-main-btn" onclick="document.getElementById('supportWrapper').classList.toggle('active')">
+        <div class="help-indicator">?</div>
+        Help & Support
+    </button>
 </div>
 
 </body>
 </html>
+
 
 
 
