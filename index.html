@@ -4,662 +4,696 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WideFind - Find Everything You Need</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    
     <style>
-        /* Cart badge styles */
-        .cart-badge {
-            position: relative;
-            display: inline-block;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #ff6600;
+        /* Custom Tailwind Configuration */
+        body {
+            font-family: 'Poppins', sans-serif;
         }
-        .cart-count {
+        
+        /* ============================================
+           PREMIUM LOGO ANIMATION
+           ============================================ */
+        .logo-gradient {
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FF8C00, #FFD700);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 0%; }
+            100% { background-position: 300%; }
+        }
+        
+        /* ============================================
+           BANNER CAROUSEL ANIMATIONS
+           ============================================ */
+        .banner-slide {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff6600;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            min-width: 18px;
-            text-align: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
         }
-        .header-actions {
+        
+        .banner-slide.active {
+            opacity: 1;
+        }
+        
+        /* ============================================
+           PRODUCT CARD HOVER EFFECTS
+           ============================================ */
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* ============================================
+           CATEGORY TAB ACTIVE STATE
+           ============================================ */
+        .category-tab {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .category-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #ff6600;
+            border-radius: 2px;
+        }
+        
+        /* ============================================
+           FLOATING SUPPORT WIDGET
+           ============================================ */
+        .support-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+        }
+        
+        .support-menu {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .support-widget.active .support-menu {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .support-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 15px;
-        }
-
-      /* --- UPDATED SEARCH BAR CSS --- */
-
-/* Align the container to the right */
-.search-wrapper {
-    display: flex;
-    justify-content: flex-end; /* Pushes to the right */
-    width: 100%;
-    margin-bottom: 25px;
-}
-
-.search-container {
-    position: relative;
-    width: 100%;
-    max-width: 280px; /* Small professional width */
-    margin: 0; /* Remove auto margins */
-}
-
-.search-box {
-    width: 100%;
-    padding: 10px 40px 10px 15px; /* Compact padding */
-    border: 1.5px solid #ececec;
-    border-radius: 8px; /* Square-round look is more modern */
-    font-size: 14px;
-    font-family: 'Poppins', sans-serif;
-    outline: none;
-    transition: all 0.3s ease;
-    background-color: #fcfcfc;
-}
-
-.search-box:focus {
-    border-color: #ff6600;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.search-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #bbb;
-    font-size: 16px;
-    pointer-events: none;
-}
-
-/* Responsive: Full width on mobile devices */
-@media (max-width: 768px) {
-    .search-wrapper {
-        justify-content: center; /* Center on mobile for better thumb reach */
-        padding: 0 15px;
-    }
-    .search-container {
-        max-width: 100%; /* Take full width on small screens */
-    }
-}
-
-        /* Product Status Badges */
-        .status-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            z-index: 5;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .status-stockout {
-            background: #dc3545;
+            justify-content: center;
             color: white;
-        }
-        .status-limited {
-            background: #8B0000;
-            color: white;
-        }
-        .status-flashsell {
-            background: linear-gradient(135deg, #ff6600, #ff9500);
-            color: white;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        /* Product Card Position Relative for Badge */
-        .product-card {
-            position: relative;
-            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s ease;
-        }
-        .product-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .product-card .btn-buy {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #ff6600;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-weight: 600;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
             cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s;
-            position: relative; 
-            z-index: 10; 
         }
-
-        .product-card .btn-buy:hover {
-            background-color: #e65c00;
+        
+        .support-icon:hover {
+            transform: scale(1.1);
         }
-
-        /* Disable button for stock out */
-        .product-card .btn-buy:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .cart-alert {
+        
+        /* ============================================
+           TOAST NOTIFICATION
+           ============================================ */
+        .toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: #1a1a1a;
-            color: #ffffff;
-            padding: 14px 28px;
+            background: #1F2937;
+            color: white;
+            padding: 16px 28px;
             border-radius: 12px;
-            border-bottom: 4px solid #ff0000;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            z-index: 10001;
+            border-left: 4px solid #ff6600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000;
             display: flex;
             align-items: center;
-            gap: 15px;
-            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-            font-size: 15px;
+            gap: 12px;
         }
-
-        .cart-alert.show {
+        
+        .toast.show {
             transform: translateX(-50%) translateY(0);
         }
-
-        /* Mobile Responsive */
+        
+        /* ============================================
+           RESPONSIVE UTILITIES
+           ============================================ */
         @media (max-width: 768px) {
-            .search-container {
-                max-width: 100%;
-                padding: 0 15px;
-                margin-bottom: 20px;
-            }
-            .status-badge {
-                font-size: 9px;
-                padding: 4px 8px;
+            .support-widget {
+                bottom: 16px;
+                right: 16px;
             }
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-50">
 
-    <header class="site-header">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1><a href="index.html" class="logo-gold">WideFind</a></h1>
-            <div class="header-actions">
-                <a href="cart.html" class="cart-badge" title="View Cart">
-                    🛒
-                    <span class="cart-count" id="cart-count">0</span>
+    <!-- ============================================
+         HEADER SECTION
+         ============================================ -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center">
+                    <h1 class="text-3xl font-black logo-gradient tracking-tight">
+                        WideFind
+                    </h1>
+                </a>
+                
+                <!-- Cart Icon with Badge -->
+                <a href="cart.html" class="relative group">
+                    <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                        <i class="fas fa-shopping-cart text-orange-600 text-xl"></i>
+                    </div>
+                    <!-- Cart Count Badge -->
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                        0
+                    </span>
                 </a>
             </div>
         </div>
     </header>
-    
-    <!-- Dynamic Ads Banner (loaded from Firebase) -->
-    <div class="ads-banner-container">
-        <div class="ads-slider" id="banner-slider">
-            <!-- Banners will be loaded here -->
-        </div>
-    </div>
 
-    <!-- Dynamic Category Menu (loaded from Firebase) -->
-    <nav class="category-menu-wrapper">
-        <div class="container">
-            <div class="category-menu-slider" id="category-menu">
-                <a href="#" class="category-item active" data-category="popular">Popular</a>
-                <!-- More categories loaded dynamically -->
+    <!-- ============================================
+         BANNER CAROUSEL
+         ============================================ -->
+    <section class="relative w-full h-64 md:h-80 overflow-hidden bg-gray-200">
+        <div id="banner-container" class="relative w-full h-full">
+            <!-- Banners will be loaded dynamically from Firebase -->
+            <div class="banner-slide active" style="background-image: url('https://placehold.co/1200x400/ff6600/ffffff?text=Loading+Banners...');">
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         CATEGORY NAVIGATION
+         ============================================ -->
+    <nav class="bg-white border-b border-gray-200 sticky top-16 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex overflow-x-auto scrollbar-hide py-4 gap-6" id="category-menu">
+                <!-- Categories will be loaded from Firebase -->
+                <button class="category-tab active text-sm font-bold text-orange-600 whitespace-nowrap pb-2" data-category="popular">
+                    Popular
+                </button>
             </div>
         </div>
     </nav>
 
-<main class="container">
-    <div class="search-wrapper">
-        <div class="search-container">
-            <input type="text" id="search-input" class="search-box" placeholder="Search products...">
-            <span class="search-icon">🔍</span>
+    <!-- ============================================
+         SEARCH BAR
+         ============================================ -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex justify-end">
+            <div class="relative w-full max-w-xs">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Search products..." 
+                    class="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                />
+                <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
         </div>
+    </section>
+
+    <!-- ============================================
+         PRODUCTS SECTION
+         ============================================ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <h2 class="text-2xl font-black text-gray-900 mb-6" id="section-title">Popular Products</h2>
+        
+        <!-- Product Grid -->
+        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <!-- Products will be loaded dynamically -->
+            <div class="col-span-full text-center py-12 text-gray-400">
+                <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                <p class="text-lg font-semibold">Loading products...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================
+         FLOATING SUPPORT WIDGET
+         ============================================ -->
+    <div class="support-widget" id="support-widget">
+        <!-- Support Menu (Hidden by default) -->
+        <div class="support-menu">
+            <a href="https://wa.me/8801729789847" target="_blank" class="support-icon bg-green-500">
+                <i class="fab fa-whatsapp text-2xl"></i>
+            </a>
+            <a href="https://facebook.com/widefind" target="_blank" class="support-icon bg-blue-600">
+                <i class="fab fa-facebook-messenger text-2xl"></i>
+            </a>
+        </div>
+        
+        <!-- Main Toggle Button -->
+        <button class="bg-gray-900 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-black transition flex items-center gap-2" onclick="toggleSupport()">
+            <span class="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center text-sm">?</span>
+            <span class="hidden sm:inline">Help & Support</span>
+            <span class="sm:hidden">Help</span>
+        </button>
     </div>
 
-    <h2 id="product-section-title">Popular Products</h2>
-    <div class="product-grid" id="product-list-container">
-        <p style="text-align:center; color:#999;">Loading products...</p>
-    </div>
-</main>
-
-    <footer class="site-footer" style="text-align: center; padding: 20px; background: #fff; margin-top: 40px;">
-        <p>© 2025 WideFind. All Rights Reserved.</p>
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-600 text-sm">&copy; 2025 WideFind. All Rights Reserved.</p>
+        </div>
     </footer>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <!-- ============================================
+         TOAST NOTIFICATION CONTAINER
+         ============================================ -->
+    <div id="toast-container"></div>
 
-    // Helper function for image URLs
-    function getValidImageURL(url) {
-        if (!url) return "https://placehold.co/400x300?text=No+Image";
-        if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-            const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-            if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+    <!-- ============================================
+         FIREBASE & JAVASCRIPT
+         ============================================ -->
+    <script type="module">
+        // ==========================================
+        // FIREBASE CONFIGURATION & INITIALIZATION
+        // ==========================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+            authDomain: "my-ecom-site-168ab.firebaseapp.com",
+            projectId: "my-ecom-site-168ab",
+            storageBucket: "my-ecom-site-168ab.appspot.com",
+            messagingSenderId: "995581566071",
+            appId: "1:995581566071:web:1640d0236302d369aefa72",
+            measurementId: "G-NLHKNBHCFN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const appId = "WideFind";
+        
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        const CART_STORAGE_KEY = 'widefindCart';
+        let allProducts = []; // Cache for search functionality
+        let currentCategory = 'popular';
+
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
+        
+        /**
+         * Validates and fixes image URLs (especially Imgur links)
+         */
+        function getValidImageURL(url) {
+            if (!url) return "https://placehold.co/400x400/f3f4f6/9ca3af?text=No+Image";
+            if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+                const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+                if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+            }
+            return url;
         }
-        return url;
-    }
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-        authDomain: "my-ecom-site-168ab.firebaseapp.com",
-        projectId: "my-ecom-site-168ab",
-        storageBucket: "my-ecom-site-168ab.appspot.com",
-        messagingSenderId: "995581566071",
-        appId: "1:995581566071:web:1640d0236302d369aefa72",
-        measurementId: "G-NLHKNBHCFN"
-    };
+        /**
+         * Get cart from localStorage
+         */
+        function getCart() {
+            try {
+                return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+            } catch (e) {
+                console.error("Error reading cart:", e);
+                return [];
+            }
+        }
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const appId = "WideFind";
-    const CART_STORAGE_KEY = 'widefindCart';
+        /**
+         * Save cart to localStorage and update badge
+         */
+        function saveCart(cart) {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            updateCartCount();
+        }
 
-    let allProductsCache = []; // Store all products for search
-
-    // Update cart count badge
-    function updateCartCount() {
-        try {
-            const cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+        /**
+         * Update cart count badge
+         */
+        function updateCartCount() {
+            const cart = getCart();
             const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
             document.getElementById('cart-count').textContent = totalItems;
-        } catch (e) {
-            console.error('Error updating cart count:', e);
         }
-    }
 
-    // High Quality Modern Notification Function
-    function showCartNotification(message) {
-        let alertBox = document.getElementById('custom-cart-alert');
-        if (!alertBox) {
-            alertBox = document.createElement('div');
-            alertBox.id = 'custom-cart-alert';
-            alertBox.className = 'cart-alert';
-            alertBox.innerHTML = `<span>🛒</span> <span id="alert-msg"></span>`;
-            document.body.appendChild(alertBox);
-        }
-        document.getElementById('alert-msg').textContent = message;
-        alertBox.classList.add('show');
-        setTimeout(() => alertBox.classList.remove('show'), 3000);
-    }
-
-    // Direct Add to Cart Function
-    window.addToCartDirect = function(event, productDataEncoded) {
-        event.stopPropagation();
-        
-        try {
-            const product = JSON.parse(decodeURIComponent(productDataEncoded));
-            let cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
+        /**
+         * Show toast notification
+         */
+        function showToast(message, icon = '✓') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="text-2xl">${icon}</span>
+                <span class="font-semibold">${message}</span>
+            `;
+            container.appendChild(toast);
             
-            const itemId = `${product.id}-std`;
-            const existingItem = cart.find(i => i.itemId === itemId);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
 
+        // ==========================================
+        // SUPPORT WIDGET TOGGLE
+        // ==========================================
+        window.toggleSupport = function() {
+            document.getElementById('support-widget').classList.toggle('active');
+        };
+
+        // Close support menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const widget = document.getElementById('support-widget');
+            if (!widget.contains(e.target)) {
+                widget.classList.remove('active');
+            }
+        });
+
+        // ==========================================
+        // ADD TO CART FUNCTION
+        // ==========================================
+        window.addToCart = function(productData) {
+            const product = JSON.parse(decodeURIComponent(productData));
+            let cart = getCart();
+            
+            // Check if product already exists in cart
+            const existingItem = cart.find(item => item.sku === product.id);
+            
             if (existingItem) {
                 existingItem.qty = (Number(existingItem.qty) || 0) + 1;
             } else {
                 cart.push({
-                    itemId: itemId,
+                    itemId: Date.now().toString(),
                     sku: product.id,
                     name: product.name,
                     price: product.price,
                     image: product.image,
                     qty: 1,
-                    size: "Standard"
+                    stockLimit: product.stock
                 });
             }
-
-            localStorage.setItem('widefindCart', JSON.stringify(cart));
-            updateCartCount();
-            showCartNotification(`${product.name} added to cart!`);
-        } catch (e) {
-            console.error("Cart error:", e);
-        }
-    };
-
-    // Load site settings
-    async function loadSiteSettings() {
-        try {
-            const settingsRef = doc(db, `artifacts/${appId}/public/data/config/siteSettings`);
-            const snap = await getDoc(settingsRef);
             
-            if (snap.exists()) {
-                const settings = snap.data();
+            saveCart(cart);
+            showToast(`${product.name} added to cart!`, '🛒');
+        };
+
+        // ==========================================
+        // LOAD SITE SETTINGS (BANNERS & CATEGORIES)
+        // ==========================================
+        async function loadSiteSettings() {
+            try {
+                const settingsRef = doc(db, `artifacts/${appId}/public/data/config/siteSettings`);
+                const snap = await getDoc(settingsRef);
                 
-                // Load categories
-                const categories = settings.categoryList || ['Popular','T-Shirt','Sunglass','Watch'];
-                const menu = document.getElementById('category-menu');
-                menu.innerHTML = '<a href="#" class="category-item active" data-category="popular">Popular</a>';
-                
-                categories.forEach(cat => {
-                    if (cat.toLowerCase() !== 'popular') {
-                        const link = document.createElement('a');
-                        link.href = '#';
-                        link.className = 'category-item';
-                        link.dataset.category = cat;
-                        link.textContent = cat;
-                        menu.appendChild(link);
-                    }
-                });
-                
-                // Load banners
-                const banners = settings.adBanners || [];
-                const bannerSlider = document.getElementById('banner-slider');
-                bannerSlider.innerHTML = '';
-                
-                if (banners.length > 0) {
-                    banners.forEach((banner, index) => {
-                        const slide = document.createElement('div');
-                        slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
-                        slide.style.backgroundImage = `url('${banner.img}')`;
-                        bannerSlider.appendChild(slide);
-                    });
+                if (snap.exists()) {
+                    const settings = snap.data();
                     
-                    if (banners.length > 1) {
-                        let currentBanner = 0;
-                        setInterval(() => {
-                            const slides = document.querySelectorAll('.banner-slide');
-                            slides[currentBanner].classList.remove('active');
-                            currentBanner = (currentBanner + 1) % slides.length;
-                            slides[currentBanner].classList.add('active');
-                        }, 5000);
+                    // Load Ad Banners
+                    const banners = settings.adBanners || [];
+                    const container = document.getElementById('banner-container');
+                    container.innerHTML = '';
+                    
+                    if (banners.length > 0) {
+                        banners.forEach((banner, index) => {
+                            const slide = document.createElement('div');
+                            slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
+                            slide.style.backgroundImage = `url('${banner.img}')`;
+                            container.appendChild(slide);
+                        });
+                        
+                        // Auto-rotate banners every 5 seconds
+                        if (banners.length > 1) {
+                            let currentBanner = 0;
+                            setInterval(() => {
+                                const slides = document.querySelectorAll('.banner-slide');
+                                slides[currentBanner].classList.remove('active');
+                                currentBanner = (currentBanner + 1) % slides.length;
+                                slides[currentBanner].classList.add('active');
+                            }, 5000);
+                        }
                     }
+                    
+                    // Load Categories
+                    const categories = settings.categoryList || ['Popular', 'T-Shirt', 'Sunglass', 'Watch'];
+                    const menu = document.getElementById('category-menu');
+                    menu.innerHTML = '<button class="category-tab active text-sm font-bold text-orange-600 whitespace-nowrap pb-2" data-category="popular">Popular</button>';
+                    
+                    categories.forEach(cat => {
+                        if (cat.toLowerCase() !== 'popular') {
+                            const btn = document.createElement('button');
+                            btn.className = 'category-tab text-sm font-bold text-gray-600 whitespace-nowrap pb-2 hover:text-orange-600';
+                            btn.dataset.category = cat;
+                            btn.textContent = cat;
+                            menu.appendChild(btn);
+                        }
+                    });
                 }
+            } catch (error) {
+                console.error('Error loading site settings:', error);
             }
-        } catch (error) {
-            console.error('Error loading settings:', error);
-        }
-    }
-
-    // Render products
-    function renderProducts(products) {
-        const container = document.getElementById('product-list-container');
-        container.innerHTML = '';
-
-        if (products.length === 0) {
-            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#777;padding:40px;">No products found.</p>`;
-            return;
         }
 
-        products.forEach(product => {
-            // Calculate discount percentage
-            let displayPercent = 0;
-            if (product.discountPercent && Number(product.discountPercent) > 0) {
-                displayPercent = Math.round(Number(product.discountPercent));
-            } else if (product.discountAmount && Number(product.originalPrice) > 0) {
-                displayPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
-            }
-
-            // Get first image
-            let firstImage = '';
-            if (Array.isArray(product.images) && product.images.length > 0) {
-                firstImage = product.images[0];
-            } else if (typeof product.images === 'string' && product.images.trim()) {
-                firstImage = product.images.split(',')[0].trim();
-            }
-
-            // Status badge HTML
-            let statusBadgeHTML = '';
-            if (product.status === 'stockout') {
-                statusBadgeHTML = '<div class="status-badge status-stockout">Out of Stock</div>';
-            } else if (product.status === 'limited') {
-                statusBadgeHTML = '<div class="status-badge status-limited">Limited Collection</div>';
-            } else if (product.status === 'flashsell') {
-                statusBadgeHTML = '<div class="status-badge status-flashsell">⚡ Flash Sale</div>';
-            }
-
-            // Encode data for Add to Cart
-            const prodInfo = encodeURIComponent(JSON.stringify({
-                id: product.id,
-                name: product.name || '',
-                price: product.price || 0,
-                image: getValidImageURL(firstImage)
-            }));
-
-            // Create the Card
-            const card = document.createElement("div");
-            card.className = "product-card";
-            card.onclick = () => { window.location.href = `product.html?id=${product.id}`; };
-
-            const isStockOut = product.status === 'stockout';
-            const buttonHTML = isStockOut 
-                ? '<button class="btn-buy" disabled>Out of Stock</button>'
-                : `<button onclick="addToCartDirect(event, '${prodInfo}')" class="btn-buy">Add to Cart</button>`;
-
-            card.innerHTML = `
-                ${statusBadgeHTML}
-                <img src="${getValidImageURL(firstImage)}" alt="${product.name || 'Product'}">
-                <h3 title="${product.name || ''}">${product.name || ''}</h3>
-                <div class="price-container">
-                    <span class="sale-price">৳${Number(product.price||0).toFixed(0)}</span>
-                    ${product.originalPrice ? `<span class="original-price">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
-                    ${displayPercent > 0 ? `<span class="discount-percent">-${displayPercent}%</span>` : ''}
-                </div>
-                ${buttonHTML}
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    // Load products
-    async function loadProducts(category = "popular") {
-        const container = document.getElementById('product-list-container');
-        const title = document.getElementById('product-section-title');
-        container.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:#999;padding:40px;">Loading products...</p>';
-
-        try {
-            const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
-            const snapshot = await getDocs(productsRef);
-
-            let products = [];
-            snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+        // ==========================================
+        // LOAD PRODUCTS FROM FIREBASE
+        // ==========================================
+        async function loadProducts(category = 'popular') {
+            const grid = document.getElementById('product-grid');
+            const title = document.getElementById('section-title');
             
-            // Cache all products for search
-            allProductsCache = products;
-
-            if (category === "popular") {
-                products = products.filter(p => p.isPopular === true);
-                title.textContent = "Popular Products";
-            } else {
-                products = products.filter(p => p.category === category);
-                title.textContent = `${category} Collection`;
+            // Show loading state
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-12 text-gray-400">
+                    <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                    <p class="text-lg font-semibold">Loading products...</p>
+                </div>
+            `;
+            
+            try {
+                const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
+                const snapshot = await getDocs(productsRef);
+                
+                let products = [];
+                snapshot.forEach(doc => {
+                    products.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Cache all products for search
+                allProducts = products;
+                
+                // Filter by category
+                if (category === 'popular') {
+                    products = products.filter(p => p.isPopular === true);
+                    title.textContent = 'Popular Products';
+                } else {
+                    products = products.filter(p => p.category === category);
+                    title.textContent = `${category} Collection`;
+                }
+                
+                renderProducts(products);
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-red-500">
+                        <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
+                        <p class="text-lg font-semibold">Failed to load products. Please refresh the page.</p>
+                    </div>
+                `;
             }
-
-            renderProducts(products);
-        } catch (error) {
-            console.error('Error loading products:', error);
-            container.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#dc3545;padding:40px;">Failed to load products. Please refresh the page.</p>`;
         }
-    }
 
-    // Search functionality
-    function handleSearch(query) {
-        const searchTerm = query.toLowerCase().trim();
-        
-        if (!searchTerm) {
-            // If search is empty, reload current category
-            const activeCategory = document.querySelector('.category-item.active');
-            if (activeCategory) {
-                loadProducts(activeCategory.dataset.category);
+        // ==========================================
+        // RENDER PRODUCTS IN GRID
+        // ==========================================
+        function renderProducts(products) {
+            const grid = document.getElementById('product-grid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-400">
+                        <i class="fas fa-box-open text-4xl mb-4"></i>
+                        <p class="text-lg font-semibold">No products found</p>
+                    </div>
+                `;
+                return;
             }
-            return;
+            
+            grid.innerHTML = products.map(product => {
+                // Get first image
+                let firstImage = '';
+                if (Array.isArray(product.images) && product.images.length > 0) {
+                    firstImage = product.images[0];
+                } else if (typeof product.images === 'string' && product.images.trim()) {
+                    firstImage = product.images.split(',')[0].trim();
+                }
+                
+                // Calculate discount percentage
+                let discountPercent = 0;
+                if (product.discountPercent && Number(product.discountPercent) > 0) {
+                    discountPercent = Math.round(Number(product.discountPercent));
+                } else if (product.discountAmount && Number(product.originalPrice) > 0) {
+                    discountPercent = Math.round((Number(product.discountAmount) / Number(product.originalPrice)) * 100);
+                }
+                
+                // Status Badge
+                let statusBadge = '';
+                if (product.status === 'stockout') {
+                    statusBadge = '<div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">Out of Stock</div>';
+                } else if (product.status === 'limited') {
+                    statusBadge = '<div class="absolute top-2 right-2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">Limited</div>';
+                } else if (product.status === 'flashsell') {
+                    statusBadge = '<div class="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">⚡ Flash Sale</div>';
+                }
+                
+                // Prepare product data for Add to Cart
+                const productData = encodeURIComponent(JSON.stringify({
+                    id: product.id,
+                    name: product.name || '',
+                    price: product.price || 0,
+                    image: getValidImageURL(firstImage),
+                    stock: product.stock || 0
+                }));
+                
+                // Check if out of stock
+                const isOutOfStock = product.status === 'stockout' || (product.stock && Number(product.stock) <= 0);
+                
+                return `
+                    <div class="product-card bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer relative" onclick="window.location.href='product.html?id=${product.id}'">
+                        ${statusBadge}
+                        
+                        <!-- Product Image -->
+                        <div class="aspect-square overflow-hidden bg-gray-100">
+                            <img src="${getValidImageURL(firstImage)}" 
+                                 alt="${product.name || 'Product'}" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='https://placehold.co/400x400/f3f4f6/9ca3af?text=No+Image'"
+                            />
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="p-4">
+                            <h3 class="font-bold text-sm md:text-base text-gray-900 mb-2 line-clamp-2 h-12">
+                                ${product.name || 'Unnamed Product'}
+                            </h3>
+                            
+                            <!-- Price Section -->
+                            <div class="flex items-center gap-2 mb-3 flex-wrap">
+                                <span class="text-lg font-black text-orange-600">৳${Number(product.price || 0).toFixed(0)}</span>
+                                ${product.originalPrice ? `<span class="text-sm text-gray-400 line-through">৳${Number(product.originalPrice).toFixed(0)}</span>` : ''}
+                                ${discountPercent > 0 ? `<span class="text-xs font-bold text-green-600">-${discountPercent}%</span>` : ''}
+                            </div>
+                            
+                            <!-- Add to Cart Button -->
+                            ${isOutOfStock 
+                                ? '<button class="w-full py-3 bg-gray-300 text-gray-600 rounded-xl font-bold cursor-not-allowed" disabled>Out of Stock</button>'
+                                : `<button onclick="event.stopPropagation(); addToCart('${productData}')" class="w-full py-3 bg-gray-900 hover:bg-black text-white rounded-xl font-bold transition-colors">
+                                    Add to Cart
+                                   </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        const filtered = allProductsCache.filter(p => 
-            (p.name || '').toLowerCase().includes(searchTerm) ||
-            (p.sku || '').toLowerCase().includes(searchTerm)
-        );
-
-        document.getElementById('product-section-title').textContent = `Search Results (${filtered.length})`;
-        renderProducts(filtered);
-    }
-
-    // Initialize page
-    document.addEventListener("DOMContentLoaded", async () => {
-        updateCartCount();
-        await loadSiteSettings();
-        await loadProducts("popular");
-
-        // Search input handler
-        const searchInput = document.getElementById('search-input');
+        // ==========================================
+        // SEARCH FUNCTIONALITY
+        // ==========================================
         let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
+        document.getElementById('search-input').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                handleSearch(e.target.value);
+                const query = e.target.value.toLowerCase().trim();
+                
+                if (!query) {
+                    // If search is empty, reload current category
+                    loadProducts(currentCategory);
+                    return;
+                }
+                
+                // Filter products by name or SKU
+                const filtered = allProducts.filter(p => 
+                    (p.name || '').toLowerCase().includes(query) ||
+                    (p.sku || '').toLowerCase().includes(query)
+                );
+                
+                document.getElementById('section-title').textContent = `Search Results (${filtered.length})`;
+                renderProducts(filtered);
             }, 300); // Debounce for 300ms
         });
 
-        // Category click handlers
+        // ==========================================
+        // CATEGORY SWITCHING
+        // ==========================================
         document.getElementById('category-menu').addEventListener('click', (e) => {
-            if (e.target.classList.contains('category-item')) {
-                e.preventDefault();
-                document.querySelectorAll(".category-item").forEach(b => b.classList.remove("active"));
-                e.target.classList.add("active");
-                searchInput.value = ''; // Clear search
-                loadProducts(e.target.dataset.category);
+            if (e.target.classList.contains('category-tab')) {
+                // Remove active state from all tabs
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    tab.classList.remove('active', 'text-orange-600');
+                    tab.classList.add('text-gray-600');
+                });
+                
+                // Add active state to clicked tab
+                e.target.classList.add('active', 'text-orange-600');
+                e.target.classList.remove('text-gray-600');
+                
+                // Clear search input
+                document.getElementById('search-input').value = '';
+                
+                // Load products for this category
+                currentCategory = e.target.dataset.category;
+                loadProducts(currentCategory);
             }
         });
 
-        window.addEventListener('focus', updateCartCount);
-    });
-</script>
-
-<!-- Floating WhatsApp & Facebook Support Buttons -->
-<style>
-/* --- REFINED HELP & SUPPORT WIDGET --- */
-.support-wrapper {
-    position: fixed;
-    bottom: 25px;
-    right: 110px; /* Increased padding to prevent icons from being cut off */
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-}
-
-.support-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(15px);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.support-wrapper.active .support-options {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.support-item {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transition: transform 0.2s;
-}
-
-.support-item:hover { transform: scale(1.1); }
-.support-item svg { width: 22px; height: 22px; fill: white; }
-
-.help-main-btn {
-    background: #1a1a1a;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 30px;
-    cursor: pointer;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-}
-
-/* MOBILE RESPONSIVE: Shrink button and label */
-@media (max-width: 768px) {
-    .support-wrapper {
-        bottom: 20px;
-        right: 50px; /* Adjust for smaller mobile screens */
-    }
-    
-    .help-label { font-size: 0; } /* Hides "Help & Support" */
-    .help-label::before { 
-        content: "Help"; 
-        font-size: 13px; 
-    }
-    .help-main-btn {
-        padding: 8px 12px;
-    }
-}
-</style>
-
-<div class="support-wrapper" id="supportWrapper">
-    <div class="support-options">
-        <a href="https://wa.me/8801729789847" target="_blank" class="support-item" style="background:#25D366;">
-            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.631 1.433h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        </a>
-        <a href="https://facebook.com/widefind" target="_blank" class="support-item" style="background:#1877f2;">
-            <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.304 2.246.464 3.443.464 6.627 0 12-4.974 12-11.111C24 4.974 18.627 0 12 0zm1.291 14.193l-3.073-3.273-5.992 3.273L8.537 8.56l3.086 3.273 5.981-3.273-6.313 5.633z"/></svg>
-        </a>
-    </div>
-
-    <button class="help-main-btn" onclick="document.getElementById('supportWrapper').classList.toggle('active')">
-        <span style="background:#ff6600; width:18px; height:18px; border-radius:50%; font-size:11px; display:flex; align-items:center; justify-content:center; color: white;">?</span>
-        <span class="help-label">Help & Support</span>
-    </button>
-</div>
-
-<script>
-    // Close the support menu if clicking outside
-    document.addEventListener('click', function(event) {
-        const wrapper = document.getElementById('supportWrapper');
-        if (!wrapper.contains(event.target)) {
-            wrapper.classList.remove('active');
-        }
-    });
-</script>
-
+        // ==========================================
+        // INITIALIZE ON PAGE LOAD
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Update cart count
+            updateCartCount();
+            
+            // Load site settings (banners & categories)
+            await loadSiteSettings();
+            
+            // Load default products (Popular)
+            await loadProducts('popular');
+            
+            // Update cart count when page regains focus (user returns from another tab)
+            window.addEventListener('focus', updateCartCount);
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
