@@ -8,6 +8,26 @@
     <link rel="stylesheet" href="style.css">
     
 <style>
+
+/* Styling for the Start Shopping Button */
+.btn-shopping {
+    display: inline-block;
+    background-color: #ff6600;
+    color: white !important;
+    padding: 12px 30px;
+    border-radius: 8px;
+    text-decoration: none !important;
+    font-weight: 600;
+    margin-top: 15px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2);
+}
+
+.btn-shopping:hover {
+    background-color: #e65c00;
+    transform: translateY(-2px);
+}
+ 
     /* 1. QUANTITY CONTROLS */
     .qty-controls {
         display: flex;
@@ -162,9 +182,10 @@
             <h2>Your Shopping Cart (<span id="cart-item-count">0</span> Items)</h2>
             <div id="cart-items-list"></div>
             
-            <div id="cart-empty-message" style="text-align: center; padding: 50px; color: #999; display: none;">
-                Your cart is empty! <a href="index.html">Start shopping now.</a>
-            </div>
+            <div id="cart-empty-message" style="text-align: center; padding: 50px; color: #666; display: none;">
+    <p style="font-size: 1.1rem; margin-bottom: 20px;">Your cart is empty!</p>
+    <a href="index.html" class="btn-shopping">START SHOPPING NOW</a>
+</div>
 
             <div class="cart-actions">
                 <div class="cart-total">
@@ -335,4 +356,5 @@
     
 </body>
 </html>
+
 
