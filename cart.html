@@ -7,6 +7,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
+        
+        
+        /* High-Quality Custom Alert Styling */
+.stock-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #ff6600, #ff4b2b);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10000;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.stock-alert.show {
+    transform: translateX(-50%) translateY(0px);
+}
+        
+        
+        
         .qty-controls {
             display: flex;
             align-items: center;
@@ -68,7 +97,26 @@
 <script>
     const CART_STORAGE_KEY = 'widefindCart';
 
-    // 1. UTILITY: Fix Imgur and Placeholder URLs
+    // UI: High Quality Alert Function
+    function showStockAlert(message) {
+        const oldAlert = document.querySelector('.stock-alert');
+        if (oldAlert) oldAlert.remove();
+        
+        const alertBox = document.createElement('div');
+        alertBox.className = 'stock-alert';
+        alertBox.innerHTML = `<span>⚠️</span> ${message}`;
+        document.body.appendChild(alertBox);
+        
+        // Animate In
+        setTimeout(() => alertBox.classList.add('show'), 10);
+        
+        // Auto-remove
+        setTimeout(() => {
+            alertBox.classList.remove('show');
+            setTimeout(() => alertBox.remove(), 500);
+        }, 3000);
+    }
+
     function getValidImageURL(url) {
         if (!url) return "https://placehold.co/120x120?text=No+Image";
         if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
@@ -78,12 +126,9 @@
         return url;
     }
 
-    // 2. DATA MANAGEMENT
     function getCart() {
-        try {
-            const cartString = localStorage.getItem(CART_STORAGE_KEY);
-            return cartString ? JSON.parse(cartString) : [];
-        } catch (e) { return []; }
+        try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]"); }
+        catch (e) { return []; }
     }
 
     function saveCart(cart) {
@@ -91,7 +136,7 @@
         renderCart(); 
     }
     
-    // 3. ACTIONS (Attached to 'window' so HTML buttons can see them)
+    // Global Functions for Buttons
     window.removeItem = function(id) {
         let cart = getCart();
         cart = cart.filter(item => (item.itemId || item.sku) != id);
@@ -105,15 +150,13 @@
         if (item) {
             let currentQty = Number(item.qty) || 1;
             let newQty = currentQty + change;
-
-            // Stop if trying to go below 1
+            
             if (newQty < 1) return;
 
             // STOCK LIMIT CHECK
-            // Checks against the 'stockLimit' saved when added to cart
             if (change > 0 && item.stockLimit !== undefined) {
                 if (newQty > Number(item.stockLimit)) {
-                    alert(`Only ${item.stockLimit} items available in stock!`);
+                    showStockAlert(`Only ${item.stockLimit} items left in stock!`);
                     return;
                 }
             }
@@ -123,7 +166,6 @@
         }
     }
 
-    // 4. UI RENDERING
     function renderCart() {
         const cart = getCart();
         const listContainer = document.getElementById('cart-items-list');
@@ -165,16 +207,14 @@
                 <div class="item-details">
                     <h4>${item.name}</h4>
                     <p>Unit Price: ৳${price.toFixed(0)}</p>
-                    ${item.size ? `<p class="item-size">Size: ${item.size}</p>` : ''}
+                    ${item.size ? `<p style="font-size:0.85rem; color:#666;">Size: ${item.size}</p>` : ''}
                     <div class="qty-controls">
                         <button class="qty-btn" onclick="updateQuantity('${id}', -1)">−</button>
                         <span class="qty-display">${qty}</span>
                         <button class="qty-btn" onclick="updateQuantity('${id}', 1)">+</button>
                     </div>
                 </div>
-                <div class="item-price">
-                    ৳${itemSubtotal.toFixed(0)}
-                </div>
+                <div class="item-price">৳${itemSubtotal.toFixed(0)}</div>
                 <div class="item-remove">
                     <button onclick="if(confirm('Remove item?')) removeItem('${id}')">✕</button>
                 </div>
@@ -186,14 +226,13 @@
         subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
     }
 
-    // 5. INITIALIZE
     document.addEventListener("DOMContentLoaded", renderCart);
 </script>
-
     
 
 </body>
 </html>
+
 
 
 
