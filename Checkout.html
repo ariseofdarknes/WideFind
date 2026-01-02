@@ -19,14 +19,43 @@
         .order-summary-table { width:100%; border-collapse:collapse; font-size:0.95rem;}
         .order-summary-table th, .order-summary-table td { padding:10px 0; border-bottom:1px solid #eee; }
         .total-row-summary td { font-weight:700; color:#ff6600; border-top:2px solid #ff6600; padding-top:15px !important;}
+
+/* Solid Header Button for Checkout */
+.btn-back {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #555; /* Solid Grey to distinguish from "Buy" buttons */
+    color: white !important;
+    text-decoration: none !important;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border: none;
+}
+
+.btn-back:hover {
+    background-color: #333; /* Slightly darker on hover, no animation */
+}
+
+/* Ensure the Logo link looks clean */
+.logo-gold {
+    color: #ff6600;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+        
     </style>
 </head>
 <body>
-    <header class="bg-white shadow-md">
-        <div class="container flex justify-between items-center py-4 px-4">
-            <h1><a href="index.html" class="logo-gold">WideFind Checkout</a></h1>
-            <a href="cart.html" class="text-gray-600 hover:text-orange-600 font-semibold">← Back to Cart</a>
-        </div>
+    
+  <header class="site-header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+        <h1><a href="index.html" class="logo-gold" style="text-decoration: none;">WideFind Checkout</a></h1>
+        <a href="cart.html" class="btn-back">← BACK TO CART</a>
+    </div>
+      
     </header>
 
     <div class="container">
@@ -597,6 +626,7 @@ cancelOrderBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
 
 
 
