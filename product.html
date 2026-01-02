@@ -129,7 +129,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* --- 1. CONFIGURATION & INITIALIZATION --- */
+/* --- 1. CONFIGURATION --- */
 const firebaseConfig = {
     apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
     authDomain: "my-ecom-site-168ab.firebaseapp.com",
@@ -179,12 +179,19 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
-/* --- 3. PRODUCT LOADING LOGIC --- */
+/* --- 3. MAIN PRODUCT LOADING --- */
 const productId = getQueryParam('id') || getQueryParam('sku');
+
 if (!productId) {
     document.getElementById('product-name').innerText = 'Product not specified';
 } else {
-    loadProduct(productId);
+    initPage();
+}
+
+async function initPage() {
+    await loadProduct(productId);
+    await loadRandomProducts();
+    updateCartCount();
 }
 
 async function loadProduct(productId) {
@@ -200,51 +207,43 @@ async function loadProduct(productId) {
         const p = snap.data();
         stockLimit = Number(p.stock) || 0; 
 
-        // Update UI with product data
+        // Update UI
         document.getElementById("product-name").innerText = p.name || '';
         document.getElementById("product-description").innerText = p.description || '';
         document.getElementById("product-price").innerText = `৳${Number(p.price || 0).toFixed(0)}`;
 
-        // Stock Badge Logic
+        // Stock Status
         const priceContainer = document.getElementById('product-price').parentElement;
-        const existingStock = document.getElementById('stock-status');
-        if (existingStock) existingStock.remove();
-        
         const stockInfo = document.createElement('p');
-        stockInfo.id = "stock-status";
         stockInfo.style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
         stockInfo.innerHTML = `Availability: <span style="color: ${stockLimit > 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${stockLimit > 0 ? stockLimit + ' in stock' : 'Out of Stock'}</span>`;
         priceContainer.appendChild(stockInfo);
 
-        // Image Gallery
-        if (typeof p.images === "string") p.images = p.images.split(',').map(i => i.trim()).filter(i => i);
+        // Images
         const mainImg = document.getElementById("product-image");
         const thumbList = document.getElementById("thumbnail-list");
-        thumbList.innerHTML = '';
-
-        if (p.images && p.images.length > 0) {
-            mainImg.src = getValidImageURL(p.images[0]);
-            p.images.forEach((url, index) => {
+        let imgs = p.images;
+        if (typeof imgs === "string") imgs = imgs.split(',').map(i => i.trim());
+        
+        if (imgs && imgs.length > 0) {
+            mainImg.src = getValidImageURL(imgs[0]);
+            imgs.forEach((url, idx) => {
                 const thumb = document.createElement('img');
                 thumb.src = getValidImageURL(url);
-                if (index === 0) thumb.classList.add('active');
-                thumb.onclick = () => {
-                    document.querySelectorAll('.thumbnail-list img').forEach(img => img.classList.remove('active'));
-                    thumb.classList.add('active');
-                    mainImg.src = getValidImageURL(url);
-                };
+                thumb.onclick = () => mainImg.src = getValidImageURL(url);
                 thumbList.appendChild(thumb);
             });
         }
 
-        // Original Price / Discount Logic
-        if (p.originalPrice) {
-            const orig = document.getElementById("product-original");
-            orig.style.display = 'inline-block';
-            orig.innerText = `৳${Number(p.originalPrice).toFixed(0)}`;
-        }
-
-        // Quantity Control Logic
+        // Qty Controls
+        document.getElementById('qty-plus').onclick = () => {
+            if (currentQty < stockLimit) {
+                currentQty++;
+                document.getElementById('qty-display').textContent = currentQty;
+            } else {
+                alert(`Stock Limit: Only ${stockLimit} available.`);
+            }
+        };
         document.getElementById('qty-minus').onclick = () => {
             if (currentQty > 1) {
                 currentQty--;
@@ -252,97 +251,75 @@ async function loadProduct(productId) {
             }
         };
 
-        document.getElementById('qty-plus').onclick = () => {
-            if (currentQty < stockLimit) {
-                currentQty++;
-                document.getElementById('qty-display').textContent = currentQty;
-            } else {
-                alert(`Limit Reached: Only ${stockLimit} items available.`);
-            }
-        };
-
-  // ✅ Corrected Add to Cart Logic
-const cartBtn = document.getElementById('add-to-cart');
-
-if (stockLimit <= 0) {
-    cartBtn.disabled = true;
-    cartBtn.textContent = 'Out of Stock';
-    cartBtn.style.background = '#999';
-} else {
-    cartBtn.onclick = () => {
-        const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
-        const cart = getCart();
-
-        // 1. Create the item with a UNIQUE ID and the STOCK LIMIT
-        const item = {
-            itemId: Date.now().toString(), // ✅ Unique ID for every "Add to Cart" click
-            sku: productId,
-            name: p.name || '',
-            price: Number(p.price || 0),
-            qty: currentQty,
-            size: sizeVal,
-            stockLimit: Number(p.stock || 0), // ✅ Crucial: Passes the stock count to the cart
-            image: (p.images && p.images[0]) ? p.images[0] : ''
-        };
-        
-        // 2. Group items ONLY if they are the exact same product AND size
-        const existing = cart.find(ci => ci.sku === item.sku && ci.size === item.size);
-        
-        if (existing) {
-            // Check if adding more exceeds stock
-            if (existing.qty + item.qty > item.stockLimit) {
-                alert(`Cannot add more. Total in cart would exceed stock (${item.stockLimit} available).`);
-                return;
-            }
-            existing.qty += item.qty;
+        // Add to Cart logic
+        const cartBtn = document.getElementById('add-to-cart');
+        if (stockLimit <= 0) {
+            cartBtn.disabled = true;
+            cartBtn.textContent = 'Out of Stock';
+            cartBtn.style.background = '#999';
         } else {
-            cart.push(item);
+            cartBtn.onclick = () => {
+                const cart = getCart();
+                const item = {
+                    itemId: Date.now().toString(),
+                    sku: productId,
+                    name: p.name,
+                    price: Number(p.price),
+                    qty: currentQty,
+                    stockLimit: stockLimit,
+                    image: (imgs && imgs[0]) ? imgs[0] : ''
+                };
+
+                const existing = cart.find(ci => ci.sku === item.sku);
+                if (existing) {
+                    if (existing.qty + item.qty > stockLimit) {
+                        alert("Cannot add more. Exceeds stock limit.");
+                        return;
+                    }
+                    existing.qty += item.qty;
+                } else {
+                    cart.push(item);
+                }
+
+                saveCart(cart);
+                cartBtn.textContent = '✓ Added!';
+                setTimeout(() => cartBtn.textContent = 'Add to Cart', 2000);
+            };
         }
-        
-        saveCart(cart);
-        
-        // UI Feedback
-        cartBtn.textContent = '✓ Added!';
-        setTimeout(() => cartBtn.textContent = 'Add to Cart', 2000);
-        
-        // Optional: Update header cart count if you have one
-        if(window.updateCartCount) window.updateCartCount();
-    };
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById('product-name').innerText = 'Error loading product';
+    }
 }
 
-/* --- 4. RELATED PRODUCTS LOGIC --- */
 async function loadRandomProducts() {
     try {
         const snap = await getDocs(collection(db, `artifacts/${appId}/public/data/products`));
         let all = [];
         snap.forEach(d => {
-            const data = d.data();
-            if(d.id !== productId) { // Don't show current product
-                all.push({ id: d.id, ...data });
-            }
+            if(d.id !== productId) all.push({ id: d.id, ...d.data() });
         });
 
-        all = all.sort(() => Math.random() - 0.5).slice(0, 18);
+        all = all.sort(() => Math.random() - 0.5).slice(0, 12);
         const container = document.getElementById("randomProducts");
         container.innerHTML = "";
 
-        all.forEach(p => {
+        all.forEach(rp => {
             const card = document.createElement("a");
-            card.href = `product.html?id=${p.id}`;
-            card.style = "border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; text-align:center; text-decoration:none; color:#000; display:block; transition:.3s;";
+            card.href = `product.html?id=${rp.id}`;
+            card.className = "related-card"; // Add your styling
+            card.style = "border:1px solid #ddd; padding:10px; border-radius:8px; text-decoration:none; color:#000; background:#fff;";
             card.innerHTML = `
-                <img src="${getValidImageURL(p.images ? (Array.isArray(p.images) ? p.images[0] : p.images) : '')}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
-                <h4 style="font-size:14px;margin:8px 0;height:40px;overflow:hidden;">${p.name}</h4>
-                <p style="color:#ff3c00;font-weight:600;">৳${p.price}</p>
+                <img src="${getValidImageURL(Array.isArray(rp.images) ? rp.images[0] : rp.images)}" style="width:100%; height:120px; object-fit:cover;">
+                <h4 style="font-size:13px; margin:5px 0;">${rp.name}</h4>
+                <p style="color:#ff6600; font-weight:bold;">৳${rp.price}</p>
             `;
             container.appendChild(card);
         });
-    } catch (e) { console.error("Related products error:", e); }
+    } catch (e) { console.error(e); }
 }
-
-document.addEventListener('DOMContentLoaded', updateCartCount);
 </script>
-
 
 
 
@@ -411,6 +388,7 @@ loadRandomProductsFromFirestore();
 
 </body>
 </html>
+
 
 
 
