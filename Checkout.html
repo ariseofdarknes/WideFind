@@ -20,11 +20,24 @@
         .order-summary-table th, .order-summary-table td { padding:10px 0; border-bottom:1px solid #eee; }
         .total-row-summary td { font-weight:700; color:#ff6600; border-top:2px solid #ff6600; padding-top:15px !important;}
 
-/* Solid Header Button for Checkout */
+/* WideFind Checkout Brand Button */
+.checkout-logo-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #ff6600; /* Solid Brand Orange */
+    color: white !important;
+    text-decoration: none !important;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    border: none;
+}
+
+/* Back to Cart Solid Button */
 .btn-back {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #555; /* Solid Grey to distinguish from "Buy" buttons */
+    background-color: #333; /* Solid Dark Grey */
     color: white !important;
     text-decoration: none !important;
     border-radius: 8px;
@@ -34,15 +47,13 @@
     border: none;
 }
 
-.btn-back:hover {
-    background-color: #333; /* Slightly darker on hover, no animation */
+/* Hover states (Color change only, no movement/animation) */
+.checkout-logo-btn:hover {
+    background-color: #e65c00;
 }
 
-/* Ensure the Logo link looks clean */
-.logo-gold {
-    color: #ff6600;
-    font-weight: 600;
-    font-size: 1.5rem;
+.btn-back:hover {
+    background-color: #000;
 }
 
         
@@ -50,13 +61,13 @@
 </head>
 <body>
     
-  <header class="site-header">
+<header class="site-header">
     <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-        <h1><a href="cart.html" class="logo-gold" style="text-decoration: none;">WideFind Checkout</a></h1>
+        <a href="index.html" class="checkout-logo-btn">WideFind Checkout</a>
+        
         <a href="cart.html" class="btn-back">← BACK TO CART</a>
     </div>
-      
-    </header>
+</header>
 
     <div class="container">
         <form id="order-form" class="form-card">
@@ -626,6 +637,7 @@ cancelOrderBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
 
 
 
