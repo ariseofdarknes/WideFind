@@ -63,9 +63,12 @@
         </div>
     </main>
 
+
+
 <script>
     const CART_STORAGE_KEY = 'widefindCart';
 
+    // 1. UTILITY: Fix Image URLs
     function getValidImageURL(url) {
         if (!url) return "images/placeholder.png";
         if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
@@ -75,12 +78,7 @@
         return url;
     }
 
-    // This is a backup DB for local testing
-    const PRODUCT_DB = {
-        'TSHIRT-001': { name: "Classic T-Shirt 1", images: ["https://picsum.photos/id/1/600/600"] },
-        'SUNGLASS-001': { name: "Aviator Sunglass 1", images: ["https://picsum.photos/id/4/600/600"] }
-    };
-
+    // 2. DATA: Get and Save Cart
     function getCart() {
         try {
             const cartString = localStorage.getItem(CART_STORAGE_KEY);
@@ -94,29 +92,36 @@
     function saveCart(cart) {
         try {
             localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-            renderCart(); // Redraws the UI immediately
+            renderCart(); // Instantly update the screen
         } catch (e) {
             console.error("Error saving cart:", e);
         }
     }
     
-    // Globally accessible remove function
+    // 3. ACTIONS: Remove and Update (Attached to window for HTML access)
     window.removeItem = function(itemId) {
         let cart = getCart();
-        cart = cart.filter(item => item.itemId !== itemId);
+        // Use != (loose) to ensure ID matches regardless of being string or number
+        cart = cart.filter(item => item.itemId != itemId); 
         saveCart(cart);
     }
 
-    // Globally accessible quantity update function
     window.updateQuantity = function(itemId, change) {
         let cart = getCart();
-        const item = cart.find(i => i.itemId === itemId);
+        // Use == (loose) to find the item
+        const item = cart.find(i => i.itemId == itemId); 
+        
         if (item) {
-            item.qty = Math.max(1, (Number(item.qty) || 1) + change); 
+            let currentQty = Number(item.qty) || 1;
+            let newQty = currentQty + change;
+            
+            // Prevent quantity from dropping below 1
+            item.qty = Math.max(1, newQty); 
             saveCart(cart); 
         }
     }
 
+    // 4. UI: Render the Cart
     function renderCart() {
         const cart = getCart();
         const listContainer = document.getElementById('cart-items-list');
@@ -142,19 +147,16 @@
         let totalQty = 0;
 
         cart.forEach(item => {
-            const product = PRODUCT_DB[item.sku] || {};
-            const image = getValidImageURL(item.image || (product.images && product.images[0]));
             const itemSubtotal = (Number(item.price) || 0) * (Number(item.qty) || 0);
-            
             totalSubtotal += itemSubtotal;
             totalQty += Number(item.qty) || 0;
             
             const itemElement = document.createElement('div');
             itemElement.classList.add('cart-item');
             
-            // CLEAN HTML with DIRECT ONCLICK
+            // Note: We use DIRECT onclick calls to our window functions
             itemElement.innerHTML = `
-                <img src="${image}" alt="${item.name}">
+                <img src="${getValidImageURL(item.image)}" alt="${item.name}">
                 <div class="item-details">
                     <h4>${item.name}</h4>
                     <p>Unit Price: ৳${Number(item.price||0).toFixed(0)}</p>
@@ -177,14 +179,17 @@
 
         countDisplay.textContent = totalQty;
         subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
-        
-        // --- OLD EVENT LISTENER CODE REMOVED FROM HERE ---
     }
 
+    // 5. INIT: Run on Load
     document.addEventListener("DOMContentLoaded", renderCart);
 </script>
 
+
+    
+
 </body>
 </html>
+
 
 
