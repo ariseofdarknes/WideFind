@@ -275,10 +275,10 @@ function applyCouponClientSide(code) {
   }
 
   // 2. CHECK USAGE LIMIT
-  const usageLimit = coupon.usageLimit || 999999;
-  const timesUsed = coupon.used || 0;
+  const usageLimit = Number(coupon.usageLimit) || 999999;
+  const timesUsed = Number(coupon.used) || 0;
 
-  if (timesUsed >= usageLimit) {
+  if (timesUsed >= usageLimit && usageLimit !== 0) {
     currentDiscount = 0;
     appliedCoupon = null;
     showAlert("error", "🚫 This coupon has reached its usage limit.");
@@ -286,26 +286,30 @@ function applyCouponClientSide(code) {
     return;
   }
 
-  // 3. CHECK MINIMUM PURCHASE (Dynamic)
+  // 3. UPDATED LOGIC: CHECK MINIMUM PURCHASE
+  // We calculate the total of items in the cart
   const productTotal = cartItems.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
-  const minRequired = coupon.minPurchase || 0; 
+  
+  // Use 'minSpendRequired' (which matches your Admin Panel)
+  const minRequired = Number(coupon.minSpendRequired) || 0; 
 
   if (productTotal < minRequired) {
     currentDiscount = 0;
     appliedCoupon = null;
-    showAlert("error", `Minimum ৳${minRequired} required.`);
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Add ৳${minRequired - productTotal} more to unlock.</span>`;
+    // This gives the exact alert you requested
+    showAlert("error", `❌ Minimum spend of ৳${minRequired} required!`);
+    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Add ৳${minRequired - productTotal} more to use this.</span>`;
+    renderOrderSummary(); // Refresh UI
     return;
   }
 
-  // 4. Success - Hold the coupon in memory (Do not update database yet!)
+  // 4. Success - Calculate discount and hold in memory
   currentDiscount = computeDiscount(coupon, productTotal);
   appliedCoupon = coupon;
   
   couponStatus.innerHTML = `<span class="text-green-600 font-bold">✅ Coupon Applied! Saved ৳${currentDiscount}</span>`;
-  showAlert("success", "Coupon Applied!");
+  showAlert("success", `✅ ৳${currentDiscount} discount applied!`);
 }
-
 
 
        
@@ -584,6 +588,7 @@ cancelOrderBtn.addEventListener("click", () => {
 
 </body>
 </html>
+
 
 
 
