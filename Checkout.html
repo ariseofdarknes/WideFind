@@ -1,654 +1,801 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Checkout & Payment</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - WideFind</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    
     <style>
-        body { font-family: 'Poppins', sans-serif; background:#f7f7f7; }
-        .container { max-width:700px; margin:20px auto; }
-        .section-header { border-bottom:3px solid #ff6600; padding-bottom:6px; margin-top:30px; margin-bottom:15px; font-weight:700; color:#333;}
-        .form-card { background:#fff; border-radius:12px; padding:25px; box-shadow:0 8px 20px rgba(0,0,0,.08); margin-bottom:20px;}
-        input[type="text"], input[type="tel"], textarea, select { border:1px solid #ddd; border-radius:8px; padding:10px 12px; width:100%; }
-        input:focus, textarea:focus, select:focus { border-color:#ff6600; box-shadow:0 0 0 2px rgba(255,102,0,0.15); outline:none; }
-        .coupon-btn { background:#008000; }
-        .select-btn { padding:12px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:#f0f0f0; font-weight:600;}
-        .select-btn.active { border-color:#ff6600; background:#fff0e0; color:#ff6600; transform:scale(1.02); }
-        .order-summary-table { width:100%; border-collapse:collapse; font-size:0.95rem;}
-        .order-summary-table th, .order-summary-table td { padding:10px 0; border-bottom:1px solid #eee; }
-        .total-row-summary td { font-weight:700; color:#ff6600; border-top:2px solid #ff6600; padding-top:15px !important;}
-
-/* WideFind Checkout Brand Button */
-.checkout-logo-btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #ff6600; /* Solid Brand Orange */
-    color: white !important;
-    text-decoration: none !important;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1.2rem;
-    border: none;
-}
-
-/* Back to Cart Solid Button */
-.btn-back {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #333; /* Solid Dark Grey */
-    color: white !important;
-    text-decoration: none !important;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    border: none;
-}
-
-/* Hover states (Color change only, no movement/animation) */
-.checkout-logo-btn:hover {
-    background-color: #e65c00;
-}
-
-.btn-back:hover {
-    background-color: #000;
-}
-
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
         
+        /* Logo Animation */
+        .logo-gradient {
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FF8C00, #FFD700);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 0%; }
+            100% { background-position: 300%; }
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #ff6600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast.success {
+            border-left-color: #10B981;
+        }
+        
+        .toast.error {
+            border-left-color: #EF4444;
+        }
     </style>
 </head>
-<body>
-    
-<header class="site-header">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-        <a href="index.html" class="checkout-logo-btn">WideFind Checkout</a>
+<body class="bg-gray-50">
+
+    <!-- ============================================
+         HEADER SECTION
+         ============================================ -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="Checkout.html" class="flex items-center">
+                    <h1 class="text-2xl md:text-3xl font-black logo-gradient tracking-tight">WideFind Checkout</h1>
+                </a>
+                
+                <a href="cart.html" class="px-4 md:px-6 py-2 bg-gray-800 hover:bg-black text-white rounded-xl font-bold transition text-sm md:text-base">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <span class="hidden sm:inline">Back to </span>Cart
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================
+         CHECKOUT FORM
+         ============================================ -->
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <a href="cart.html" class="btn-back">← BACK TO CART</a>
-    </div>
-</header>
-
-    <div class="container">
-        <form id="order-form" class="form-card">
-            <h2 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">Complete Your Order</h2>
-            <h3 class="section-header">Delivery & Contact Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <form id="checkout-form" class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-3xl font-black text-gray-900 mb-8 text-center">Complete Your Order</h2>
+            
+            <!-- ============================================
+                 CUSTOMER INFORMATION
+                 ============================================ -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-orange-600">
+                    Delivery & Contact Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" id="customer-name" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                               placeholder="Enter your full name"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Phone Number *</label>
+                        <input type="tel" id="customer-phone" required pattern="[0-9]{11}"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                               placeholder="01XXXXXXXXX"
+                        />
+                    </div>
+                </div>
+                
+                <!-- Region / District / Upazila Cascading Dropdowns -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Region *</label>
+                        <select id="region" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition">
+                            <option value="">Select Region</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">District *</label>
+                        <select id="district" required disabled
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition">
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Upazila *</label>
+                        <select id="upazila" required disabled
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition">
+                            <option value="">Select Upazila</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <div>
-                    <label class="block text-sm font-medium">Full Name</label><input id="name" type="text" required placeholder="Full name">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Full Delivery Address *</label>
+                    <textarea id="customer-address" required rows="3"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                              placeholder="House/Apartment, Street, Landmarks..."
+                    ></textarea>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium">Phone Number</label><input id="phone" type="tel" required pattern="[0-9]{11}" placeholder="01XXXXXXXXX">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium">Region</label>
-                    <select id="region" required><option value="">Select Region</option></select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">District</label>
-                    <select id="district" required disabled><option value="">Select District</option></select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Upazila</label>
-                    <select id="upazila" required disabled><option value="">Select Upazila</option></select>
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium">Full Delivery Address</label>
-                <textarea id="address" rows="2" required placeholder="Apartment, suite, unit..."></textarea>
             </div>
 
-            <h3 class="section-header">Coupon Code</h3>
-            <div class="flex gap-3 mb-6">
-                <div class="flex-grow">
-                    <label class="block text-sm font-medium">Enter Code</label>
-                    <input id="coupon-code" type="text" placeholder="Enter coupon code">
-                    <p id="coupon-status" class="text-xs text-gray-500 mt-1"></p>
+            <!-- ============================================
+                 COUPON CODE SECTION
+                 ============================================ -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-orange-600">
+                    Coupon Code
+                </h3>
+                
+                <div class="flex gap-3">
+                    <div class="flex-grow">
+                        <input type="text" id="coupon-code"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                               placeholder="Enter coupon code"
+                        />
+                        <p id="coupon-status" class="text-sm mt-2"></p>
+                    </div>
+                    <button type="button" id="apply-coupon-btn"
+                            class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition">
+                        Apply
+                    </button>
                 </div>
-                <button type="button" id="apply-coupon-btn" class="coupon-btn text-white px-5 py-3 rounded-lg">Apply</button>
             </div>
 
-            <h3 class="section-header">Order & Price Summary</h3>
-            <div class="mb-6">
-                <table class="order-summary-table">
-                    <thead><tr><th class="w-2/3">Item / Description</th><th class="w-1/3 text-right">Amount (৳)</th></tr></thead>
-                    <tbody id="cart-summary-body"><tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is loading or empty...</td></tr></tbody>
-                    <tfoot id="price-summary-foot"></tfoot>
-                </table>
-            </div>
-
-            <h3 class="section-header">Payment Method</h3>
-            <div class="flex gap-3 mb-6">
-                <button type="button" class="select-btn flex-1 active" data-method="Cash on Delivery">Cash on Delivery (COD)</button>
-                <button type="button" class="select-btn flex-1" data-method="Online Payment">Bkash / Nagad </button>
-            </div>
-            <input type="hidden" id="payment-method" value="Cash on Delivery">
-
-            <div id="online-payment-fields" class="border-2 border-dashed border-orange-300 bg-red-50 p-4 rounded-lg hidden">
-                <p class="text-lg font-bold text-red-600 mb-3">Complete Mobile Payment</p>
-                <div class="p-3 bg-red-100 rounded-lg mb-4 text-center">
-                    <span class="text-xl font-extrabold text-orange-600">01729789847</span> <span class="text-gray-600 font-semibold">(Bkash/Nagad Merchant)</span>
+            <!-- ============================================
+                 ORDER SUMMARY
+                 ============================================ -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-orange-600">
+                    Order Summary
+                </h3>
+                
+                <div id="order-items-list" class="mb-4 space-y-3">
+                    <!-- Order items will be rendered here -->
                 </div>
-                <div class="flex gap-3 mb-4">
-                    <button type="button" class="select-btn flex-1 bg-pink-100 border-pink-500 text-pink-600" data-channel="Bkash">Bkash</button>
-                    <button type="button" class="select-btn flex-1 bg-purple-100 border-purple-500 text-purple-600" data-channel="Nagad">Nagad</button>
+                
+                <!-- Price Breakdown -->
+                <div class="border-t-2 border-gray-200 pt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Items Subtotal:</span>
+                        <span class="font-bold" id="items-subtotal">৳0</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Delivery Charge:</span>
+                        <span class="font-bold" id="delivery-charge">৳0</span>
+                    </div>
+                    <div class="text-xs text-gray-500 italic mb-2">
+                        ⚠️ Delivery charge varies by region (Pathao Courier Service)
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-green-600">Discount:</span>
+                        <span class="font-bold text-green-600" id="discount-amount">-৳0</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-black pt-3 border-t border-gray-200">
+                        <span>Grand Total:</span>
+                        <span class="text-orange-600" id="grand-total">৳0</span>
+                    </div>
                 </div>
-                <input type="hidden" id="payment-channel" value="">
-                <label class="block text-sm font-medium mt-3">Your Mobile Number (Sender)</label><input id="sender-number" type="text" placeholder="01XXXXXXXXX">
-                <label class="block text-sm font-medium mt-3">Transaction ID</label><input id="transaction-id" type="text" placeholder="ABC123XYZ">
             </div>
 
-            <div class="flex gap-4 mt-8">
-                <button type="submit" id="place-order-btn" class="flex-1 bg-orange-600 text-white p-4 rounded-xl font-bold">Place Order</button>
-                <button type="button" id="cancel-order-btn" class="flex-1 bg-red-600 text-white p-4 rounded-xl font-bold">Cancel Order</button>
+            <!-- ============================================
+                 PAYMENT METHOD
+                 ============================================ -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-orange-600">
+                    Payment Method
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <button type="button" class="payment-method-btn active" data-method="Cash on Delivery">
+                        <i class="fas fa-money-bill-wave mr-2"></i>
+                        Cash on Delivery (COD)
+                    </button>
+                    <button type="button" class="payment-method-btn" data-method="Online Payment">
+                        <i class="fas fa-mobile-alt mr-2"></i>
+                        Bkash / Nagad
+                    </button>
+                </div>
+                <input type="hidden" id="payment-method" value="Cash on Delivery">
+                
+                <!-- Online Payment Fields (Hidden by default) -->
+                <div id="online-payment-fields" class="hidden border-2 border-dashed border-orange-300 bg-orange-50 p-6 rounded-xl">
+                    <p class="text-lg font-bold text-orange-800 mb-3">Complete Mobile Payment</p>
+                    <div class="bg-orange-100 p-4 rounded-xl mb-4 text-center">
+                        <span class="text-2xl font-black text-orange-700">01729789847</span>
+                        <span class="block text-sm text-gray-600 font-semibold">(Bkash/Nagad Merchant)</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button type="button" class="payment-channel-btn" data-channel="Bkash">
+                            <i class="fas fa-mobile-alt mr-2"></i> Bkash
+                        </button>
+                        <button type="button" class="payment-channel-btn" data-channel="Nagad">
+                            <i class="fas fa-mobile-alt mr-2"></i> Nagad
+                        </button>
+                    </div>
+                    <input type="hidden" id="payment-channel">
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Your Mobile Number (Sender)</label>
+                        <input type="text" id="sender-number" placeholder="01XXXXXXXXX"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-orange-500"
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Transaction ID</label>
+                        <input type="text" id="transaction-id" placeholder="ABC123XYZ"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-orange-500"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================
+                 ACTION BUTTONS
+                 ============================================ -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <button type="submit" id="place-order-btn"
+                        class="flex-1 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-lg transition">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Place Order
+                </button>
+                <button type="button" id="cancel-order-btn"
+                        class="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition">
+                    <i class="fas fa-times-circle mr-2"></i>
+                    Cancel Order
+                </button>
             </div>
         </form>
-    </div>
+    </main>
 
-    <!-- Firebase + logic -->
-    
-    
-    
-    
-    
-    
-   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-/* ---------------- Firebase Setup ---------------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-  authDomain: "my-ecom-site-168ab.firebaseapp.com",
-  projectId: "my-ecom-site-168ab",
-  storageBucket: "my-ecom-site-168ab.firebasestorage.app",
-  messagingSenderId: "995581566071",
-  appId: "1:995581566071:web:1640d0236302d369aefa72",
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-600 text-sm">&copy; 2025 WideFind. All Rights Reserved.</p>
+        </div>
+    </footer>
 
-/* ---------------- Constants & Elements ---------------- */
-const DELIVERY_FEES = 80;
-const CART_STORAGE_KEY = "widefindCart";
-const SUCCESS_REDIRECT_URL = "index.html";
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
 
-const regionEl = document.getElementById("region");
-const districtEl = document.getElementById("district");
-const upazilaEl = document.getElementById("upazila");
-const applyCouponBtn = document.getElementById("apply-coupon-btn");
-const couponInput = document.getElementById("coupon-code");
-const couponStatus = document.getElementById("coupon-status");
-const placeOrderBtn = document.getElementById("place-order-btn");
-const cancelOrderBtn = document.getElementById("cancel-order-btn");
-const cartSummaryBody = document.getElementById("cart-summary-body");
-const priceSummaryFoot = document.getElementById("price-summary-foot");
+    <!-- ============================================
+         FIREBASE & JAVASCRIPT
+         ============================================ -->
+    <script type="module">
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- Global Data Holders ---
-let GEO_DATA = {};
-let cartItems = [];
-let availableCoupons = [];
-let appliedCoupon = null;
-let currentDiscount = 0;
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+            authDomain: "my-ecom-site-168ab.firebaseapp.com",
+            projectId: "my-ecom-site-168ab",
+            storageBucket: "my-ecom-site-168ab.firebasestorage.app",
+            messagingSenderId: "995581566071",
+            appId: "1:995581566071:web:1640d0236302d369aefa72"
+        };
 
-/* ---------------- HQ Animated Alert ---------------- */
-function showAlert(type, msg) {
-  const box = document.createElement("div");
-  box.className =
-    "fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl text-white font-semibold shadow-xl backdrop-blur-md transition-all duration-500 transform scale-95 opacity-0";
-  box.innerHTML =
-    type === "success"
-      ? `<svg class='w-6 h-6 text-white animate-bounce' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/></svg><span>${msg}</span>`
-      : `<svg class='w-6 h-6 text-white animate-pulse' fill='none' stroke='currentColor' stroke-width='3' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/></svg><span>${msg}</span>`;
-  box.style.background =
-    type === "success"
-      ? "linear-gradient(90deg,#10B981,#34D399)"
-      : "linear-gradient(90deg,#EF4444,#F87171)";
-  document.body.appendChild(box);
-  setTimeout(() => {
-    box.style.opacity = "1";
-    box.style.transform = "scale(1)";
-  }, 50);
-  setTimeout(() => {
-    box.style.opacity = "0";
-    box.style.transform = "scale(0.95)";
-    setTimeout(() => box.remove(), 400);
-  }, 3000);
-}
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const appId = "WideFind";
+        const CART_STORAGE_KEY = 'widefindCart';
 
-/* ---------------- Geo Data Loader ---------------- */
-fetch("geo_data.json")
-  .then(res => res.json())
-  .then(data => {
-    GEO_DATA = data;
-    populateRegions();
-  })
-  .catch(err => console.error("Failed to load geo_data:", err));
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        let cartItems = [];
+        let availableCoupons = [];
+        let appliedCoupon = null;
+        let currentDiscount = 0;
+        let GEO_DATA = {};
 
-function populateRegions() {
-  regionEl.innerHTML = '<option value="" disabled selected>Select Region</option>';
-  Object.keys(GEO_DATA).forEach(r => {
-    const o = document.createElement("option");
-    o.value = r;
-    o.textContent = r;
-    regionEl.appendChild(o);
-  });
-}
-function populateDistricts() {
-  districtEl.innerHTML = '<option value="" disabled selected>Select District</option>';
-  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
-  upazilaEl.disabled = true;
-  const sel = regionEl.value;
-  if (!sel) { districtEl.disabled = true; return; }
-  districtEl.disabled = false;
-  Object.keys(GEO_DATA[sel]).forEach(d => {
-    const o = document.createElement("option");
-    o.value = d; o.textContent = d;
-    districtEl.appendChild(o);
-  });
-}
-function populateUpazilas() {
-  upazilaEl.innerHTML = '<option value="" disabled selected>Select Upazila</option>';
-  const selR = regionEl.value;
-  const selD = districtEl.value;
-  if (!selR || !selD) { upazilaEl.disabled = true; return; }
-  upazilaEl.disabled = false;
-  GEO_DATA[selR][selD].forEach(u => {
-    const o = document.createElement("option");
-    o.value = u; o.textContent = u;
-    upazilaEl.appendChild(o);
-  });
-}
-regionEl.addEventListener("change", populateDistricts);
-districtEl.addEventListener("change", populateUpazilas);
+        // Regional Delivery Fees (in BDT)
+        const DELIVERY_FEES_BY_REGION = {
+            "Dhaka": 80,
+            "Chattogram": 100,
+            "Rajshahi": 120,
+            "Khulna": 120,
+            "Sylhet": 110,
+            "Rangpur": 130,
+            "Barishal": 130,
+            "Mymensingh": 120
+        };
 
-/* ---------------- Cart + Coupon Logic ---------------- */
-function getCart() {
-  try {
-    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
-  } catch { return []; }
-}
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
+        
+        /**
+         * Get cart from localStorage
+         */
+        function getCart() {
+            try {
+                return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+            } catch (e) {
+                return [];
+            }
+        }
 
+        /**
+         * Show toast notification
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fas fa-check-circle text-green-600' : 
+                        type === 'error' ? 'fas fa-times-circle text-red-600' : 
+                        'fas fa-info-circle text-orange-600';
+            
+            toast.innerHTML = `
+                <i class="${icon} text-xl"></i>
+                <span class="font-semibold text-gray-900">${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
 
-async function loadCouponsFromFirestore() {
-  try {
-    const ref = doc(db, "artifacts/WideFind/public/data/config/coupons");
-    const snap = await getDoc(ref);
-    availableCoupons = snap.exists() ? snap.data().validCodes || [] : [];
-    console.log("✅ Coupons loaded:", availableCoupons);
-  } catch (err) {
-    console.error("Error loading coupons:", err);
-    availableCoupons = [];
-  }
-}
+        // ==========================================
+        // LOAD BANGLADESH GEO DATA
+        // ==========================================
+        async function loadGeoData() {
+            try {
+                const response = await fetch('geo_data.json');
+                GEO_DATA = await response.json();
+                populateRegions();
+            } catch (error) {
+                console.error('Error loading geo data:', error);
+                showToast('Failed to load location data', 'error');
+            }
+        }
 
-function findMatchingCoupon(code) {
-  return availableCoupons.find(c => c.code && c.code.toUpperCase() === code.toUpperCase());
-}
-function couponAppliesToCart(coupon, cart) {
-  if (!coupon) return false;
-  if (!coupon.allowedProducts || !coupon.allowedProducts.length) return true;
-  return cart.some(i => coupon.allowedProducts.includes(i.sku));
-}
-function computeDiscount(coupon, total) {
-  if (!coupon) return 0;
-  return coupon.type === "percent"
-    ? Math.round(total * (coupon.amount / 100))
-    : coupon.amount;
-}
+        /**
+         * Populate region dropdown
+         */
+        function populateRegions() {
+            const regionSelect = document.getElementById('region');
+            regionSelect.innerHTML = '<option value="">Select Region</option>';
+            
+            Object.keys(GEO_DATA).forEach(region => {
+                const option = document.createElement('option');
+                option.value = region;
+                option.textContent = region;
+                regionSelect.appendChild(option);
+            });
+        }
 
+        /**
+         * Populate district dropdown based on selected region
+         */
+        function populateDistricts() {
+            const region = document.getElementById('region').value;
+            const districtSelect = document.getElementById('district');
+            const upazilaSelect = document.getElementById('upazila');
+            
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            upazilaSelect.innerHTML = '<option value="">Select Upazila</option>';
+            upazilaSelect.disabled = true;
+            
+            if (!region) {
+                districtSelect.disabled = true;
+                return;
+            }
+            
+            districtSelect.disabled = false;
+            
+            Object.keys(GEO_DATA[region]).forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                districtSelect.appendChild(option);
+            });
+            
+            // Update delivery fee
+            updateOrderSummary();
+        }
 
+        /**
+         * Populate upazila dropdown based on selected district
+         */
+        function populateUpazilas() {
+            const region = document.getElementById('region').value;
+            const district = document.getElementById('district').value;
+            const upazilaSelect = document.getElementById('upazila');
+            
+            upazilaSelect.innerHTML = '<option value="">Select Upazila</option>';
+            
+            if (!region || !district) {
+                upazilaSelect.disabled = true;
+                return;
+            }
+            
+            upazilaSelect.disabled = false;
+            
+            GEO_DATA[region][district].forEach(upazila => {
+                const option = document.createElement('option');
+                option.value = upazila;
+                option.textContent = upazila;
+                upazilaSelect.appendChild(option);
+            });
+        }
 
-function applyCouponClientSide(code) {
-  couponStatus.textContent = "";
-  const coupon = findMatchingCoupon(code);
-  
-  // 1. Check if coupon exists and is ACTIVE
-  if (!coupon || coupon.status !== "active") {
-    currentDiscount = 0;
-    appliedCoupon = null;
-    showAlert("error", "❌ Coupon is invalid or deactivated.");
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Coupon not available.</span>`;
-    return;
-  }
+        // Event listeners for cascading dropdowns
+        document.getElementById('region').addEventListener('change', populateDistricts);
+        document.getElementById('district').addEventListener('change', populateUpazilas);
 
-  // 2. CHECK USAGE LIMIT
-  const usageLimit = Number(coupon.usageLimit) || 999999;
-  const timesUsed = Number(coupon.used) || 0;
+        // ==========================================
+        // LOAD COUPONS FROM FIREBASE
+        // ==========================================
+        async function loadCoupons() {
+            try {
+                const couponRef = doc(db, `artifacts/${appId}/public/data/config/coupons`);
+                const snap = await getDoc(couponRef);
+                availableCoupons = snap.exists() ? (snap.data().validCodes || []) : [];
+            } catch (error) {
+                console.error('Error loading coupons:', error);
+            }
+        }
 
-  if (timesUsed >= usageLimit && usageLimit !== 0) {
-    currentDiscount = 0;
-    appliedCoupon = null;
-    showAlert("error", "🚫 This coupon has reached its usage limit.");
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Coupon Expired.</span>`;
-    return;
-  }
+        // ==========================================
+        // COUPON VALIDATION & APPLICATION
+        // ==========================================
+        document.getElementById('apply-coupon-btn').addEventListener('click', async () => {
+            const couponCode = document.getElementById('coupon-code').value.trim().toUpperCase();
+            const statusEl = document.getElementById('coupon-status');
+            
+            if (!couponCode) {
+                showToast('Please enter a coupon code', 'error');
+                return;
+            }
+            
+            // Find matching coupon
+            const coupon = availableCoupons.find(c => c.code && c.code.toUpperCase() === couponCode);
+            
+            // Check if coupon exists and is active
+            if (!coupon || coupon.status !== 'active') {
+                currentDiscount = 0;
+                appliedCoupon = null;
+                statusEl.innerHTML = '<span class="text-red-600 font-bold">❌ Invalid or inactive coupon</span>';
+                showToast('Coupon is invalid or deactivated', 'error');
+                updateOrderSummary();
+                return;
+            }
+            
+            // Check usage limit
+            const usageLimit = Number(coupon.usageLimit) || 999999;
+            const timesUsed = Number(coupon.used) || 0;
+            
+            if (timesUsed >= usageLimit && usageLimit !== 0) {
+                currentDiscount = 0;
+                appliedCoupon = null;
+                statusEl.innerHTML = '<span class="text-red-600 font-bold">❌ Coupon has reached usage limit</span>';
+                showToast('This coupon has expired', 'error');
+                updateOrderSummary();
+                return;
+            }
+            
+            // Check minimum spend
+            const itemsTotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const minRequired = Number(coupon.minSpendRequired) || 0;
+            
+            if (itemsTotal < minRequired) {
+                currentDiscount = 0;
+                appliedCoupon = null;
+                statusEl.innerHTML = `<span class="text-red-600 font-bold">❌ Minimum spend of ৳${minRequired} required. Add ৳${minRequired - itemsTotal} more.</span>`;
+                showToast(`Minimum spend of ৳${minRequired} required!`, 'error');
+                updateOrderSummary();
+                return;
+            }
+            
+            // Calculate discount
+            currentDiscount = coupon.type === 'percent' 
+                ? Math.round(itemsTotal * (coupon.amount / 100))
+                : coupon.amount;
+            
+            appliedCoupon = coupon;
+            statusEl.innerHTML = `<span class="text-green-600 font-bold">✅ Coupon applied! Saved ৳${currentDiscount}</span>`;
+            showToast(`✅ ৳${currentDiscount} discount applied!`, 'success');
+            updateOrderSummary();
+        });
 
-  // 3. UPDATED LOGIC: CHECK MINIMUM PURCHASE
-  // We calculate the total of items in the cart
-  const productTotal = cartItems.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
-  
-  // Use 'minSpendRequired' (which matches your Admin Panel)
-  const minRequired = Number(coupon.minSpendRequired) || 0; 
+        // ==========================================
+        // CALCULATE TOTALS
+        // ==========================================
+        function calculateTotals() {
+            const itemsTotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const region = document.getElementById('region').value;
+            const deliveryFee = DELIVERY_FEES_BY_REGION[region] || 80;
+            const discount = currentDiscount || 0;
+            const grandTotal = Math.max(itemsTotal + deliveryFee - discount, 0);
+            
+            return { itemsTotal, deliveryFee, discount, grandTotal };
+        }
 
-  if (productTotal < minRequired) {
-    currentDiscount = 0;
-    appliedCoupon = null;
-    // This gives the exact alert you requested
-    showAlert("error", `❌ Minimum spend of ৳${minRequired} required!`);
-    couponStatus.innerHTML = `<span class="text-red-500 font-bold">Add ৳${minRequired - productTotal} more to use this.</span>`;
-    renderOrderSummary(); // Refresh UI
-    return;
-  }
+        // ==========================================
+        // UPDATE ORDER SUMMARY
+        // ==========================================
+        function updateOrderSummary() {
+            // Render cart items
+            const itemsList = document.getElementById('order-items-list');
+            itemsList.innerHTML = cartItems.map(item => `
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">${item.name} ${item.size && item.size !== 'Standard' ? `(${item.size})` : ''} × ${item.qty}</span>
+                    <span class="font-bold">৳${(item.price * item.qty).toFixed(0)}</span>
+                </div>
+            `).join('');
+            
+            // Update totals
+            const { itemsTotal, deliveryFee, discount, grandTotal } = calculateTotals();
+            
+            document.getElementById('items-subtotal').textContent = `৳${itemsTotal.toFixed(0)}`;
+            document.getElementById('delivery-charge').textContent = `৳${deliveryFee.toFixed(0)}`;
+            document.getElementById('discount-amount').textContent = `-৳${discount.toFixed(0)}`;
+            document.getElementById('grand-total').textContent = `৳${grandTotal.toFixed(0)}`;
+        }
 
-  // 4. Success - Calculate discount and hold in memory
-  currentDiscount = computeDiscount(coupon, productTotal);
-  appliedCoupon = coupon;
-  
-  couponStatus.innerHTML = `<span class="text-green-600 font-bold">✅ Coupon Applied! Saved ৳${currentDiscount}</span>`;
-  showAlert("success", `✅ ৳${currentDiscount} discount applied!`);
-}
-
-
-       
- // coupons btn)  
-applyCouponBtn.addEventListener("click", async () => {
-  applyCouponBtn.disabled = true;
-  applyCouponBtn.innerHTML =
-    `<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"></circle>
-       <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-     </svg> Applying...`;
-
-  // Refresh coupons from Firestore (in case admin changed them)
-  await loadCouponsFromFirestore();
-
-  const code = couponInput.value.trim();
-
-  // Attempt to apply coupon; applyCouponClientSide sets currentDiscount or leaves it 0
-  applyCouponClientSide(code);
-
-  // IMPORTANT: re-render the order summary so Discount & Grand Total update immediately
-  renderOrderSummary();
-
-  // Enable button again after short delay to keep UX smooth
-  setTimeout(() => {
-    applyCouponBtn.disabled = false;
-    applyCouponBtn.textContent = "Apply";
-  }, 1000);
-});
-
-
-
-
-/* ---------------- Initialize checkout ---------------- */
-document.addEventListener('DOMContentLoaded', async () => {
-  // Load cart from localStorage
-  cartItems = getCart();
-  console.log("DEBUG: checkout cartItems:", cartItems);
-
-  // If cart is empty, inform user and redirect back to cart page
-  if (!cartItems.length) {
-    showAlert("error", "🛒 Your cart is empty — you will be returned to Cart.");
-    setTimeout(() => (window.location.href = "cart.html"), 1800);
-    return;
-  }
-
-  // Ensure geo data is available before populating regions
-  if (Object.keys(GEO_DATA).length) {
-    populateRegions();
-  } else {
-    try {
-      const res = await fetch("geo_data.json");
-      GEO_DATA = await res.json();
-      populateRegions();
-    } catch (err) {
-      console.error("Geo data failed:", err);
-      showAlert("error", "⚠️ Could not load delivery regions.");
-    }
-  }
-
-  // Render the order summary now that cartItems is ready
-  renderOrderSummary();
-
-  // Load coupons (background)
-  await loadCouponsFromFirestore();
-});
-
-
-
-
-
-/* ---------------- Dynamic Totals & Summary ---------------- */
-
-// base delivery fees by region (you can adjust values)
-const DELIVERY_FEES_BY_REGION = {
-  Dhaka: 80,
-  Chattogram: 100,
-  Rajshahi: 120,
-  Khulna: 120,
-  Sylhet: 110,
-  Rangpur: 130,
-  Barishal: 130,
-  Mymensingh: 120,
-};
-
-// get delivery fee based on selected region
-function getDeliveryFee() {
-  const region = regionEl.value;
-  return DELIVERY_FEES_BY_REGION[region] || 80; // default 80
-}
-
-// compute all totals
-function calculateTotals() {
-  const productTotal = cartItems.reduce(
-    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
-    0
-  );
-  const deliveryFee = getDeliveryFee();
-  const discount = currentDiscount || 0;
-  const grandTotal = Math.max(productTotal + deliveryFee - discount, 0);
-  return { productTotal, deliveryFee, discount, grandTotal };
-}
-
-// render summary table
-function renderOrderSummary() {
-  if (!cartItems.length) {
-    cartSummaryBody.innerHTML =
-      '<tr><td colspan="2" class="text-center text-gray-500 italic p-4">Cart is empty.</td></tr>';
-    priceSummaryFoot.innerHTML = "";
-    return;
-  }
-
-  cartSummaryBody.innerHTML = cartItems
-    .map(
-      (i) => `
-      <tr>
-        <td>${i.name} <span class="text-xs text-gray-500">x${i.qty}</span></td>
-        <td class="text-right">৳${(i.price * i.qty).toFixed(0)}</td>
-      </tr>`
-    )
-    .join("");
-
-  const { productTotal, deliveryFee, discount, grandTotal } = calculateTotals();
-
-  // ✅ Includes Pathao courier service notice
-  priceSummaryFoot.innerHTML = `
-    <tr><td class="text-gray-600 pt-2">Product Total</td><td class="text-right text-gray-600 pt-2">৳${productTotal.toFixed(0)}</td></tr>
-    <tr>
-      <td class="text-gray-600">Delivery Fee</td>
-      <td class="text-right text-gray-600">৳${deliveryFee.toFixed(0)}</td>
-    </tr>
-    <tr>
-      <td colspan="2" class="text-xs text-gray-500 italic pb-2">
-        ⚠️ Delivery charge is set by <b>Pathao Courier Service</b>. We are not responsible for this fee.
-      </td>
-    </tr>
-    <tr><td class="text-green-600">Discount</td><td class="text-right text-green-600">-৳${discount.toFixed(0)}</td></tr>
-    <tr class="total-row-summary"><td>Grand Total</td><td class="text-right font-bold text-orange-600">৳${grandTotal.toFixed(0)}</td></tr>
-  `;
-}
-
-/* --- Update totals whenever region or coupon changes --- */
-regionEl.addEventListener("change", renderOrderSummary);
-districtEl.addEventListener("change", renderOrderSummary);
-upazilaEl.addEventListener("change", renderOrderSummary);
-couponInput.addEventListener("input", () => {
-  // reset displayed coupon message when user edits
-  couponStatus.textContent = "";
-});
-
-
-
-/* ---------------- Payment Switching ---------------- */
-document.querySelectorAll('.select-btn[data-method]').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    document.querySelectorAll('.select-btn[data-method]').forEach(b=>b.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    const method=e.currentTarget.getAttribute('data-method');
-    document.getElementById('payment-method').value=method;
-    const online=document.getElementById('online-payment-fields');
-    const show=method==="Online Payment";
-    online.classList.toggle('hidden',!show);
-    document.getElementById('sender-number').required=show;
-    document.getElementById('transaction-id').required=show;
-  });
-});
-
-document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    document.querySelectorAll('#online-payment-fields .select-btn[data-channel]').forEach(b=>b.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    const ch=e.currentTarget.getAttribute('data-channel');
-    document.getElementById('payment-channel').value=ch;
-    showAlert("success",`💳 ${ch} selected for online payment`);
-  });
-});
-
-       
-
-/* ---------------- Place Order ---------------- */
-document.getElementById("order-form").addEventListener("submit", async ev => {
-  ev.preventDefault();
-  if (!cartItems.length) return showAlert("error", "Your cart is empty!");
-
-  const orderId = "WF" + Date.now();
-  
-  const order = {
-    orderId,
-    name: document.getElementById("name").value || "",
-    phone: document.getElementById("phone").value || "",
-    region: regionEl.value || "",
-    district: districtEl.value || "",
-    upazila: upazilaEl.value || "",
-    address: document.getElementById("address").value || "",
-    paymentMethod: document.getElementById("payment-method").value || "Cash on Delivery",
-    paymentChannel: document.getElementById("payment-channel").value || "",
-    senderNumber: document.getElementById("sender-number").value || "",
-    transactionId: document.getElementById("transaction-id").value || "",
-    cartItems: cartItems, 
-    discount: Number(currentDiscount) || 0,
-    timestamp: new Date().toISOString(),
-  };
-
-  placeOrderBtn.disabled = true;
-  placeOrderBtn.textContent = "Processing...";
-
-  try {
-    // 1. SAVE ORDER TO FIRESTORE (High Priority)
-    const cleanOrder = JSON.parse(JSON.stringify(order));
-    await setDoc(doc(db, "artifacts/WideFind/public/data/Orders", orderId), cleanOrder);
-
-    // 2. INVENTORY STOCK REDUCTION
-    try {
-        // Using Promise.all makes this much faster than a standard 'for' loop
-        const stockUpdates = cartItems.map(item => {
-            const productRef = doc(db, `artifacts/WideFind/public/data/products/${item.sku}`);
-            return updateDoc(productRef, {
-                stock: increment(-Number(item.qty))
+        // ==========================================
+        // PAYMENT METHOD SELECTION
+        // ==========================================
+        document.querySelectorAll('.payment-method-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+                
+                // Add active class to clicked button
+                e.currentTarget.classList.add('active');
+                
+                const method = e.currentTarget.dataset.method;
+                document.getElementById('payment-method').value = method;
+                
+                // Show/hide online payment fields
+                const onlineFields = document.getElementById('online-payment-fields');
+                if (method === 'Online Payment') {
+                    onlineFields.classList.remove('hidden');
+                    document.getElementById('sender-number').required = true;
+                    document.getElementById('transaction-id').required = true;
+                } else {
+                    onlineFields.classList.add('hidden');
+                    document.getElementById('sender-number').required = false;
+                    document.getElementById('transaction-id').required = false;
+                }
             });
         });
-        await Promise.all(stockUpdates);
-        console.log("Stock reduced successfully.");
-    } catch (inventoryError) {
-        console.error("Critical: Order placed but stock failed to update:", inventoryError);
-    }
 
-    // 3. UPDATE COUPON USAGE
-    if (appliedCoupon && appliedCoupon.code) {
-      try {
-        const couponRef = doc(db, "artifacts/WideFind/public/data/config/coupons");
-        const snap = await getDoc(couponRef);
+        // Payment channel selection
+        document.querySelectorAll('.payment-channel-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.payment-channel-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                
+                const channel = e.currentTarget.dataset.channel;
+                document.getElementById('payment-channel').value = channel;
+                showToast(`${channel} selected`, 'success');
+            });
+        });
 
-        if (snap.exists()) {
-          const updatedCodes = (snap.data().validCodes || []).map(c => {
-            if (c.code === appliedCoupon.code) {
-              const newUsedCount = (c.used || 0) + 1;
-              const limit = Number(c.usageLimit) || 999999;
-              return {
-                ...c,
-                used: newUsedCount,
-                status: newUsedCount >= limit ? "inactive" : (c.status || "active")
-              };
+        // ==========================================
+        // PLACE ORDER
+        // ==========================================
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!cartItems.length) {
+                showToast('Your cart is empty', 'error');
+                return;
             }
-            return c;
-          });
-          await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
+            
+            const orderId = "WF" + Date.now();
+            const { itemsTotal, deliveryFee, discount, grandTotal } = calculateTotals();
+            
+            const orderData = {
+                orderId,
+                name: document.getElementById('customer-name').value,
+                phone: document.getElementById('customer-phone').value,
+                region: document.getElementById('region').value,
+                district: document.getElementById('district').value,
+                upazila: document.getElementById('upazila').value,
+                address: document.getElementById('customer-address').value,
+                paymentMethod: document.getElementById('payment-method').value,
+                paymentChannel: document.getElementById('payment-channel').value || '',
+                senderNumber: document.getElementById('sender-number').value || '',
+                transactionId: document.getElementById('transaction-id').value || '',
+                cartItems: cartItems,
+                itemsTotal: itemsTotal,
+                deliveryCharge: deliveryFee,
+                discount: discount,
+                grandTotal: grandTotal,
+                status: 'Pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+            
+            try {
+                // 1. Save order to Firestore
+                await setDoc(doc(db, `artifacts/${appId}/public/data/Orders`, orderId), orderData);
+                
+                // 2. Reduce product stock
+                for (const item of cartItems) {
+                    const productRef = doc(db, `artifacts/${appId}/public/data/products/${item.sku}`);
+                    await updateDoc(productRef, {
+                        stock: increment(-Number(item.qty))
+                    });
+                }
+                
+                // 3. Update coupon usage (if applied)
+                if (appliedCoupon && appliedCoupon.code) {
+                    const couponRef = doc(db, `artifacts/${appId}/public/data/config/coupons`);
+                    const snap = await getDoc(couponRef);
+                    
+                    if (snap.exists()) {
+                        const updatedCodes = (snap.data().validCodes || []).map(c => {
+                            if (c.code === appliedCoupon.code) {
+                                const newUsedCount = (c.used || 0) + 1;
+                                const limit = Number(c.usageLimit) || 999999;
+                                return {
+                                    ...c,
+                                    used: newUsedCount,
+                                    status: newUsedCount >= limit ? "inactive" : (c.status || "active")
+                                };
+                            }
+                            return c;
+                        });
+                        await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
+                    }
+                }
+                
+                // 4. Send to Google Sheets (background, no await)
+                const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
+                fetch(scriptURL, { 
+                    method: "POST", 
+                    body: JSON.stringify(orderData), 
+                    mode: 'no-cors' 
+                }).catch(e => console.log("Sheet submission backgrounded"));
+                
+                // 5. Clear cart and redirect
+                localStorage.removeItem(CART_STORAGE_KEY);
+                showToast(`✅ Order placed! ID: ${orderId}`, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showToast('Failed to place order. Please try again.', 'error');
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Place Order';
+            }
+        });
+
+        // ==========================================
+        // CANCEL ORDER
+        // ==========================================
+        document.getElementById('cancel-order-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                showToast('Order cancelled', 'error');
+                setTimeout(() => window.location.href = 'cart.html', 1500);
+            }
+        });
+
+        // ==========================================
+        // INITIALIZE ON PAGE LOAD
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load cart items
+            cartItems = getCart();
+            
+            // If cart is empty, redirect to cart page
+            if (!cartItems.length) {
+                showToast('Your cart is empty', 'error');
+                setTimeout(() => window.location.href = 'cart.html', 1800);
+                return;
+            }
+            
+            // Load geo data
+            await loadGeoData();
+            
+            // Load coupons
+            await loadCoupons();
+            
+            // Render order summary
+            updateOrderSummary();
+        });
+    </script>
+
+    <style>
+        /* Payment Method Button Styles */
+        .payment-method-btn {
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-weight: 600;
+            background: #f9fafb;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-      } catch (err) {
-        console.error("Coupon update failed:", err);
-      }
-    }
-
-    // 4. SEND TO GOOGLE SHEET (Background Task)
-    // We remove 'await' so the user doesn't wait for Google's slow response
-    const scriptURL = "https://script.google.com/macros/s/AKfycby7NeSZ7siDOzIsDeVwffxEEyiCAMHMI0kJENCp1218aD9KnUxGWL7XjQ1Y80RbgIkApA/exec";
-    fetch(scriptURL, { 
-        method: "POST", 
-        body: JSON.stringify(order), 
-        mode: 'no-cors' 
-    }).catch(e => console.log("Sheet error backgrounded"));
-
-    // 5. SUCCESS!
-    localStorage.removeItem(CART_STORAGE_KEY);
-    showAlert("success", `✅ Order placed! ID: ${orderId}`);
-    setTimeout(() => window.location.href = SUCCESS_REDIRECT_URL, 2000);
-
-  } catch (err) {
-    console.error("Full Firestore Error:", err);
-    showAlert("error", "❌ Connection error. Please try again.");
-  } finally {
-    placeOrderBtn.disabled = false;
-    placeOrderBtn.textContent = "Place Order";
-  }
-});
-
-       
-/* ---------------- Cancel Order ---------------- */
-cancelOrderBtn.addEventListener("click", () => {
-  if (confirm("Are you sure you want to cancel this order?")) {
-    showAlert("error", "❌ Order cancelled — returning to cart...");
-    setTimeout(() => window.location.href = "cart.html", 1500);
-  }
-});
-</script>
-
-
+        
+        .payment-method-btn:hover {
+            border-color: #ff6600;
+            background: #fff;
+        }
+        
+        .payment-method-btn.active {
+            border-color: #ff6600;
+            background: #fff5ee;
+            color: #ff6600;
+        }
+        
+        /* Payment Channel Button Styles */
+        .payment-channel-btn {
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-weight: 600;
+            background: #f9fafb;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-channel-btn:hover {
+            border-color: #ff6600;
+        }
+        
+        .payment-channel-btn.active {
+            border-color: #ff6600;
+            background: #ff6600;
+            color: white;
+        }
+    </style>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
