@@ -1,371 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Product Details</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | WideFind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <style>
-/* High-Quality Custom Alert Styling */
-.stock-alert {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100px);
-    background: linear-gradient(135deg, #ff6600, #ff4b2b);
-    color: white;
-    padding: 14px 28px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 10000;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    border: 1px solid rgba(255,255,255,0.2);
-}
-
-.stock-alert.show {
-    transform: translateX(-50%) translateY(0px);
-}
-
-        
-        .cart-badge {
-            position: relative;
-            display: inline-block;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #ff6600;
-            text-decoration: none;
-        }
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff6600;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            min-width: 18px;
-            text-align: center;
-        }
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        .qty-btn {
-            width: 40px;
-            height: 40px;
-            border: 2px solid #ff6600;
-            background: white;
-            color: #ff6600;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .qty-btn:hover {
-            background: #ff6600;
-            color: white;
-        }
-        .qty-display {
-            font-size: 1.3rem;
-            font-weight: 600;
-            min-width: 50px;
-            text-align: center;
-            padding: 8px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-        }
-    </style>
 </head>
-<body>
+<body class="bg-[#f8f9fa]">
 
-<header class="site-header">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-        <h1><a href="index.html" class="logo-gold">WideFind</a></h1>
-        <a href="cart.html" class="cart-badge" title="View Cart">
-            🛒
-            <span class="cart-count" id="cart-count">0</span>
-        </a>
-    </div>
-</header>
-
-<main class="product-page container">
-
-    <div class="product-gallery">
-        <div class="main-image-container">
-            <img id="product-image" src="https://placehold.co/600x600?text=Loading..." alt="Product Image">
+    <header class="glass-header">
+        <div class="container mx-auto px-4 h-20 flex items-center justify-between">
+            <a href="index.html" class="logo-gold">WideFind</a>
+            <a href="cart.html" class="relative group">
+                <span class="text-2xl">🛒</span>
+                <span id="cart-count" class="cart-badge">0</span>
+            </a>
         </div>
-        <div id="thumbnail-list" class="thumbnail-list"></div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10">
+        <nav class="mb-8 text-sm text-gray-500">
+            <a href="index.html" class="hover:text-orange-600">Home</a> / 
+            <span id="breadcrumb-cat">Category</span> / 
+            <span id="breadcrumb-name" class="text-gray-900 font-medium">Product</span>
+        </nav>
+
+        <div class="bg-white rounded-[32px] p-6 md:p-12 shadow-sm border border-gray-100">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                
+                <div class="space-y-4">
+                    <div class="main-img-container rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 aspect-square">
+                        <img id="main-img" src="" alt="Product Image" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div id="thumb-grid" class="grid grid-cols-4 gap-4">
+                        </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <span id="prod-category" class="text-orange-600 font-bold text-xs uppercase tracking-widest mb-2">Category</span>
+                    <h1 id="prod-title" class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">Loading Product...</h1>
+                    
+                    <div class="flex items-center gap-4 mb-8">
+                        <span id="prod-price" class="text-3xl font-extrabold text-gray-900">৳0</span>
+                        <span id="prod-old-price" class="text-xl text-gray-400 line-through hidden">৳0</span>
+                        <span id="prod-discount" class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold hidden">0% OFF</span>
+                    </div>
+
+                    <p id="prod-desc" class="text-gray-600 leading-relaxed mb-8 border-t border-gray-100 pt-8">
+                        Please wait while we fetch the product details...
+                    </p>
+
+                    <div class="mt-auto space-y-6">
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                                <button onclick="updateQty(-1)" class="px-5 py-3 hover:bg-gray-200 transition-colors font-bold text-xl">-</button>
+                                <input type="number" id="qty-input" value="1" min="1" class="w-12 text-center bg-transparent font-bold outline-none" readonly>
+                                <button onclick="updateQty(1)" class="px-5 py-3 hover:bg-gray-200 transition-colors font-bold text-xl">+</button>
+                            </div>
+                            <p class="text-sm text-gray-400 font-medium">In Stock & Ready to Ship</p>
+                        </div>
+
+                        <button onclick="addToCartDetailed()" class="w-full bg-black text-white py-5 rounded-2xl font-bold text-lg uppercase tracking-wide hover:bg-orange-600 transition-all shadow-xl shadow-black/10 active:scale-[0.98]">
+                            Add to Shopping Bag
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <div id="custom-cart-alert" class="cart-alert">
+        <span id="alert-msg"></span>
     </div>
 
-    <div class="product-details">
-        <h2 id="product-name">Loading...</h2>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        <div class="product-price-ref">
-            <span class="sale-price" id="product-price">৳0</span>
-            <span class="original-price" id="product-original" style="display:none;">৳0</span>
-            <span class="discount-percent" id="product-discount" style="display:none;">-0%</span>
-        </div>
-
-        <p id="product-description"></p>
-
-        <h4 id="size-label">Available Sizes</h4>
-        <div id="size-options" class="size-container"></div>
-
-        <div class="quantity-controls">
-            <label style="font-weight: 600;">Quantity:</label>
-            <button class="qty-btn" id="qty-minus">−</button>
-            <div class="qty-display" id="qty-display">1</div>
-            <button class="qty-btn" id="qty-plus">+</button>
-        </div>
-
-        <button id="add-to-cart" class="btn-buy">Add to Cart</button>
-    </div>
-
-
-
-
-<!-- ================= Related Random Products ================== -->
-<div style="max-width:1200px;margin:40px auto;">
-  <h2 style="font-size:22px;margin-bottom:15px;">You May Also Like</h2>
-
-  <div id="randomProducts" 
-       style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;">
-  </div>
-</div>
-
-
-</main>
-
-<footer class="site-footer" style="text-align: center; padding: 20px; background: #fff; margin-top: 40px;">
-    <p>© 2025 WideFind. All Rights Reserved.</p>
-</footer>
-
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* --- 1. CONFIGURATION --- */
-const firebaseConfig = {
-    apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
-    authDomain: "my-ecom-site-168ab.firebaseapp.com",
-    projectId: "my-ecom-site-168ab",
-    storageBucket: "my-ecom-site-168ab.appspot.com",
-    messagingSenderId: "995581566071",
-    appId: "1:995581566071:web:1640d0236302d369aefa72",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const appId = "WideFind";
-const CART_STORAGE_KEY = 'widefindCart';
-
-let currentQty = 1;
-let stockLimit = 0;
-
-/* --- 2. UI: HIGH QUALITY ALERT --- */
-function showStockAlert(message) {
-    const oldAlert = document.querySelector('.stock-alert');
-    if (oldAlert) oldAlert.remove();
-    const alertBox = document.createElement('div');
-    alertBox.className = 'stock-alert';
-    alertBox.innerHTML = `<span>⚠️</span> ${message}`;
-    document.body.appendChild(alertBox);
-    setTimeout(() => alertBox.classList.add('show'), 10);
-    setTimeout(() => {
-        alertBox.classList.remove('show');
-        setTimeout(() => alertBox.remove(), 500);
-    }, 3000);
-}
-
-/* --- 3. UTILITY FUNCTIONS --- */
-function getValidImageURL(url) {
-    if (!url) return "https://placehold.co/600x600?text=No+Image";
-    if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-        const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-        if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
-    }
-    return url;
-}
-
-function getCart() {
-    try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]"); }
-    catch(e){ return []; }
-}
-
-function saveCart(cart){ 
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart)); 
-    updateCartCount();
-}
-
-function updateCartCount() {
-    const cart = getCart();
-    const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
-    const badge = document.getElementById('cart-count');
-    if(badge) badge.textContent = totalItems;
-}
-
-function getQueryParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name);
-}
-
-/* --- 4. MAIN PRODUCT LOADING --- */
-const productId = getQueryParam('id') || getQueryParam('sku');
-
-if (!productId) {
-    document.getElementById('product-name').innerText = 'Product not specified';
-} else {
-    initPage();
-}
-
-async function initPage() {
-    await loadProduct(productId);
-    await loadRandomProducts();
-    updateCartCount();
-}
-
-async function loadProduct(productId) {
-    try {
-        const ref = doc(db, `artifacts/${appId}/public/data/products/${productId}`);
-        const snap = await getDoc(ref);
-        
-        if (!snap.exists()) {
-            document.getElementById('product-name').innerText = 'Product not found';
-            return;
-        }
-        
-        const p = snap.data();
-        stockLimit = Number(p.stock) || 0; 
-
-        // Update UI
-        document.getElementById("product-name").innerText = p.name || '';
-        document.getElementById("product-description").innerText = p.description || '';
-        document.getElementById("product-price").innerText = `৳${Number(p.price || 0).toFixed(0)}`;
-
-        // Stock Status Badge
-        const priceContainer = document.getElementById('product-price').parentElement;
-        const stockInfo = document.createElement('p');
-        stockInfo.style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
-        stockInfo.innerHTML = `Availability: <span style="color: ${stockLimit > 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${stockLimit > 0 ? stockLimit + ' in stock' : 'Out of Stock'}</span>`;
-        priceContainer.appendChild(stockInfo);
-
-        // Images Gallery
-        const mainImg = document.getElementById("product-image");
-        const thumbList = document.getElementById("thumbnail-list");
-        let imgs = p.images;
-        if (typeof imgs === "string") imgs = imgs.split(',').map(i => i.trim());
-        
-        if (imgs && imgs.length > 0) {
-            mainImg.src = getValidImageURL(imgs[0]);
-            imgs.forEach((url) => {
-                const thumb = document.createElement('img');
-                thumb.src = getValidImageURL(url);
-                thumb.onclick = () => mainImg.src = getValidImageURL(url);
-                thumbList.appendChild(thumb);
-            });
-        }
-
-        // Quantity Controls with Stock Protection
-        document.getElementById('qty-plus').onclick = () => {
-            if (currentQty < stockLimit) {
-                currentQty++;
-                document.getElementById('qty-display').textContent = currentQty;
-            } else {
-                showStockAlert(`Sorry, only ${stockLimit} pieces available!`);
-            }
-        };
-        document.getElementById('qty-minus').onclick = () => {
-            if (currentQty > 1) {
-                currentQty--;
-                document.getElementById('qty-display').textContent = currentQty;
-            }
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
+            authDomain: "my-ecom-site-168ab.firebaseapp.com",
+            projectId: "my-ecom-site-168ab",
+            storageBucket: "my-ecom-site-168ab.appspot.com",
+            messagingSenderId: "995581566071",
+            appId: "1:995581566071:web:1640d0236302d369aefa72",
+            measurementId: "G-NLHKNBHCFN"
         };
 
-        // Add to Cart logic
-        const cartBtn = document.getElementById('add-to-cart');
-        if (stockLimit <= 0) {
-            cartBtn.disabled = true;
-            cartBtn.textContent = 'Out of Stock';
-            cartBtn.style.background = '#999';
-        } else {
-            cartBtn.onclick = () => {
-                const cart = getCart();
-                const item = {
-                    itemId: Date.now().toString(),
-                    sku: productId,
-                    name: p.name,
-                    price: Number(p.price),
-                    qty: currentQty,
-                    stockLimit: stockLimit,
-                    image: (imgs && imgs[0]) ? imgs[0] : ''
-                };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        let currentProduct = null;
 
-                const existing = cart.find(ci => ci.sku === item.sku);
-                if (existing) {
-                    if (existing.qty + item.qty > stockLimit) {
-                        showStockAlert(`Limit Reached! Total in cart cannot exceed ${stockLimit}.`);
-                        return;
-                    }
-                    existing.qty += item.qty;
+        async function loadProduct() {
+            if (!productId) { window.location.href = 'index.html'; return; }
+
+            try {
+                const docRef = doc(db, "artifacts", "WideFind", "public", "data", "products", productId);
+                const snap = await getDoc(docRef);
+
+                if (snap.exists()) {
+                    currentProduct = { id: snap.id, ...snap.data() };
+                    displayProduct(currentProduct);
                 } else {
-                    cart.push(item);
+                    document.getElementById('prod-title').innerText = "Product Not Found";
                 }
-
-                saveCart(cart);
-                cartBtn.textContent = '✓ Added!';
-                setTimeout(() => cartBtn.textContent = 'Add to Cart', 2000);
-            };
+            } catch (err) { console.error(err); }
         }
 
-    } catch (err) {
-        console.error(err);
-        document.getElementById('product-name').innerText = 'Error loading product';
-    }
-}
+        function displayProduct(p) {
+            document.getElementById('prod-title').innerText = p.name;
+            document.getElementById('breadcrumb-name').innerText = p.name;
+            document.getElementById('prod-category').innerText = p.category || "General";
+            document.getElementById('breadcrumb-cat').innerText = p.category || "General";
+            document.getElementById('prod-desc').innerText = p.description || "No description available for this premium product.";
+            document.getElementById('prod-price').innerText = `৳${p.price}`;
 
-async function loadRandomProducts() {
-    try {
-        const snap = await getDocs(collection(db, `artifacts/${appId}/public/data/products`));
-        let all = [];
-        snap.forEach(d => {
-            if(d.id !== productId) all.push({ id: d.id, ...d.data() });
-        });
-        all = all.sort(() => Math.random() - 0.5).slice(0, 12);
-        const container = document.getElementById("randomProducts");
-        container.innerHTML = "";
-        all.forEach(rp => {
-            const card = document.createElement("a");
-            card.href = `product.html?id=${rp.id}`;
-            card.style = "border:1px solid #ddd; padding:10px; border-radius:8px; text-decoration:none; color:#000; background:#fff; text-align:center;";
-            card.innerHTML = `
-                <img src="${getValidImageURL(Array.isArray(rp.images) ? rp.images[0] : rp.images)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
-                <h4 style="font-size:13px; margin:5px 0; height:34px; overflow:hidden;">${rp.name}</h4>
-                <p style="color:#ff6600; font-weight:bold;">৳${rp.price}</p>
-            `;
-            container.appendChild(card);
-        });
-    } catch (e) { console.error(e); }
-}
-</script>
+            // Image Gallery Logic
+            const images = Array.isArray(p.images) ? p.images : [p.images];
+            const mainImg = document.getElementById('main-img');
+            mainImg.src = images[0];
 
+            const thumbGrid = document.getElementById('thumb-grid');
+            images.forEach((img, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = `cursor-pointer rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-orange-500' : 'border-transparent'}`;
+                thumb.innerHTML = `<img src="${img}" class="w-full h-20 object-cover">`;
+                thumb.onclick = () => {
+                    mainImg.src = img;
+                    document.querySelectorAll('#thumb-grid div').forEach(d => d.classList.remove('border-orange-500'));
+                    thumb.classList.add('border-orange-500');
+                };
+                thumbGrid.appendChild(thumb);
+            });
 
+            // Discount UI
+            if (p.originalPrice && p.originalPrice > p.price) {
+                const oldPriceEl = document.getElementById('prod-old-price');
+                const discEl = document.getElementById('prod-discount');
+                const percent = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
+                
+                oldPriceEl.innerText = `৳${p.originalPrice}`;
+                oldPriceEl.classList.remove('hidden');
+                discEl.innerText = `${percent}% OFF`;
+                discEl.classList.remove('hidden');
+            }
+        }
+
+        window.updateQty = function(val) {
+            const input = document.getElementById('qty-input');
+            let newVal = parseInt(input.value) + val;
+            if (newVal < 1) newVal = 1;
+            input.value = newVal;
+        };
+
+        window.addToCartDetailed = function() {
+            const qty = parseInt(document.getElementById('qty-input').value);
+            let cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
+            const img = Array.isArray(currentProduct.images) ? currentProduct.images[0] : currentProduct.images;
+            
+            const existing = cart.find(i => i.itemId === `${currentProduct.id}-std`);
+            if (existing) {
+                existing.qty += qty;
+            } else {
+                cart.push({
+                    itemId: `${currentProduct.id}-std`,
+                    sku: currentProduct.id,
+                    name: currentProduct.name,
+                    price: currentProduct.price,
+                    image: img,
+                    qty: qty,
+                    size: "Standard"
+                });
+            }
+            
+            localStorage.setItem('widefindCart', JSON.stringify(cart));
+            updateCartCount();
+            showToast(`${currentProduct.name} added to cart!`);
+        };
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
+            document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
+        }
+
+        function showToast(m) {
+            const t = document.getElementById('custom-cart-alert');
+            t.innerText = m;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        loadProduct();
+        updateCartCount();
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
