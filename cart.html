@@ -66,7 +66,7 @@
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(5px);
-        display: none; /* Hidden by default */
+        display: none; 
         justify-content: center;
         align-items: center;
         z-index: 11000;
@@ -90,6 +90,30 @@
     }
     .modal-overlay.active .modal-content {
         transform: translateY(0);
+    }
+    .modal-btns {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .btn-confirm-remove {
+        background: #ff4b2b;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-cancel {
+        background: #eee;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    </style>
 </head>
 <body>
 
@@ -105,55 +129,48 @@
 </div>
    
     <header class="site-header">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-             <h1><a href="index.html" class="logo-gold">WideFind</a></h1>
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+             <h1><a href="index.html" class="logo-gold" style="text-decoration:none; color:#ff6600;">WideFind</a></h1>
             <a href="index.html" style="font-weight: 600; color: #555; text-decoration: none;">← Continue Shopping</a>
         </div>
     </header>
 
     <main class="container">
         <div class="cart-page-container">
-            <h2>Your Shopping Cart (<span id="cart-item-count">0</span> Items)</h2>
+            <h2 style="margin-bottom: 20px;">Your Shopping Cart (<span id="cart-item-count">0</span> Items)</h2>
             <div id="cart-items-list"></div>
             
             <div id="cart-empty-message" style="text-align: center; padding: 50px; color: #999; display: none;">
-                Your cart is empty! <a href="index.html">Start shopping now.</a>
+                Your cart is empty! <a href="index.html" style="color:#ff6600;">Start shopping now.</a>
             </div>
 
-            <div class="cart-actions">
-                <div class="cart-total">
-                    Subtotal: <span id="cart-subtotal">৳0</span>
+            <div class="cart-actions" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="cart-total" style="font-size: 1.5rem; font-weight: 600; margin-bottom: 15px;">
+                    Subtotal: <span id="cart-subtotal" style="color:#ff6600;">৳0</span>
                 </div>
-                <a href="checkout.html" id="proceed-to-checkout" class="btn-buy" style="width: 250px; margin: 0;">PROCEED TO CHECKOUT</a>
+                <a href="checkout.html" id="proceed-to-checkout" class="btn-buy" style="display:inline-block; background:#ff6600; color:white; padding: 15px 40px; text-decoration:none; border-radius: 8px; font-weight:600;">PROCEED TO CHECKOUT</a>
             </div>
         </div>
     </main>
 
-
-
 <script>
     const CART_STORAGE_KEY = 'widefindCart';
-    let itemToRemove = null; // Stores ID for the modal
+    let itemToRemove = null; 
 
-    // --- 1. UI: HIGH QUALITY TOAST ALERT ---
     function showStockAlert(message) {
         const oldAlert = document.querySelector('.stock-alert');
         if (oldAlert) oldAlert.remove();
-        
         const alertBox = document.createElement('div');
         alertBox.className = 'stock-alert';
         alertBox.innerHTML = `<span>⚠️</span> ${message}`;
         document.body.appendChild(alertBox);
-        
         setTimeout(() => alertBox.classList.add('show'), 10);
-        
         setTimeout(() => {
             alertBox.classList.remove('show');
             setTimeout(() => alertBox.remove(), 500);
         }, 3000);
     }
 
-    // --- 2. UI: HIGH QUALITY CONFIRM MODAL ---
     window.openConfirmModal = function(id) {
         itemToRemove = id;
         document.getElementById('confirm-modal').classList.add('active');
@@ -164,7 +181,6 @@
         itemToRemove = null;
     }
 
-    // Modal Action
     document.getElementById('modal-confirm-btn').onclick = function() {
         if (itemToRemove) {
             let cart = getCart();
@@ -175,7 +191,6 @@
         }
     };
 
-    // --- 3. DATA LOGIC ---
     function getValidImageURL(url) {
         if (!url) return "https://placehold.co/120x120?text=No+Image";
         if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
@@ -198,27 +213,21 @@
     window.updateQuantity = function(id, change) {
         let cart = getCart();
         const item = cart.find(i => (i.itemId || i.sku) == id);
-        
         if (item) {
             let currentQty = Number(item.qty) || 1;
             let newQty = currentQty + change;
-            
             if (newQty < 1) return;
-
-            // Enforce Stock Limit
             if (change > 0 && item.stockLimit !== undefined) {
                 if (newQty > Number(item.stockLimit)) {
                     showStockAlert(`Only ${item.stockLimit} items left in stock!`);
                     return;
                 }
             }
-
             item.qty = newQty;
             saveCart(cart); 
         }
     }
 
-    // --- 4. RENDER UI ---
     function renderCart() {
         const cart = getCart();
         const listContainer = document.getElementById('cart-items-list');
@@ -228,7 +237,6 @@
         const actions = document.querySelector('.cart-actions');
         
         listContainer.innerHTML = '';
-        
         if (cart.length === 0) {
             countDisplay.textContent = '0';
             subtotalDisplay.textContent = '৳0';
@@ -238,7 +246,7 @@
         }
 
         emptyMessage.style.display = 'none';
-        if (actions) actions.style.display = 'flex';
+        if (actions) actions.style.display = 'block';
 
         let totalSubtotal = 0;
         let totalQty = 0;
@@ -248,29 +256,25 @@
             const price = Number(item.price) || 0;
             const qty = Number(item.qty) || 0;
             const itemSubtotal = price * qty;
-            
             totalSubtotal += itemSubtotal;
             totalQty += qty;
             
             const itemElement = document.createElement('div');
-            itemElement.classList.add('cart-item');
-            
+            itemElement.className = 'cart-item';
+            itemElement.style = "display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee;";
             itemElement.innerHTML = `
-                <img src="${getValidImageURL(item.image)}" alt="${item.name}">
-                <div class="item-details">
-                    <h4>${item.name}</h4>
-                    <p>Price: ৳${price.toFixed(0)}</p>
-                    ${item.size ? `<p style="font-size:0.85rem; color:#666;">Size: ${item.size}</p>` : ''}
+                <img src="${getValidImageURL(item.image)}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                <div style="flex: 1;">
+                    <h4 style="margin: 0;">${item.name}</h4>
+                    <p style="margin: 5px 0; color: #666;">৳${price.toFixed(0)}</p>
                     <div class="qty-controls">
                         <button class="qty-btn" onclick="updateQuantity('${id}', -1)">−</button>
                         <span class="qty-display">${qty}</span>
                         <button class="qty-btn" onclick="updateQuantity('${id}', 1)">+</button>
                     </div>
                 </div>
-                <div class="item-price">৳${itemSubtotal.toFixed(0)}</div>
-                <div class="item-remove">
-                    <button onclick="openConfirmModal('${id}')">✕</button>
-                </div>
+                <div style="font-weight: 600;">৳${itemSubtotal.toFixed(0)}</div>
+                <button onclick="openConfirmModal('${id}')" style="background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.2rem; margin-left: 10px;">✕</button>
             `;
             listContainer.appendChild(itemElement);
         });
@@ -281,14 +285,5 @@
 
     document.addEventListener("DOMContentLoaded", renderCart);
 </script>
-    
-
 </body>
 </html>
-
-
-
-
-
-
-
