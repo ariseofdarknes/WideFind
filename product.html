@@ -195,7 +195,16 @@ async function loadProduct(productId) {
             return;
         }
         const p = snap.data();
+// This connects the Admin Panel stock value to this page
+stockLimit = Number(p.stock) || 0; 
 
+// Optional: Show the stock to the user so they know how many are left
+const stockInfo = document.createElement('p');
+stockInfo.style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
+stockInfo.innerHTML = `Availability: <span style="color: ${stockLimit > 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${stockLimit > 0 ? stockLimit + ' in stock' : 'Out of Stock'}</span>`;
+document.getElementById('product-price').parentElement.appendChild(stockInfo);
+
+        
         if (typeof p.images === "string") {
             p.images = p.images.split(',').map(i => i.trim()).filter(i => i);
         }
@@ -264,20 +273,31 @@ async function loadProduct(productId) {
         } else {
             sizeOptions.innerHTML = '<small class="text-gray-500">No size selection</small>';
         }
-
-        // Quantity controls
-        document.getElementById('qty-minus').addEventListener('click', () => {
+        
+// --- Quantity Logic (Corrected) ---
+        document.getElementById('qty-minus').onclick = () => {
             if (currentQty > 1) {
                 currentQty--;
                 document.getElementById('qty-display').textContent = currentQty;
             }
-        });
+        };
 
-        document.getElementById('qty-plus').addEventListener('click', () => {
-            currentQty++;
-            document.getElementById('qty-display').textContent = currentQty;
-        });
+        document.getElementById('qty-plus').onclick = () => {
+            if (currentQty < stockLimit) {
+                currentQty++;
+                document.getElementById('qty-display').textContent = currentQty;
+            } else {
+                alert(`Limit Reached: Only ${stockLimit} items available.`);
+            }
+        };
 
+        if (stockLimit <= 0) {
+            const btn = document.getElementById('add-to-cart');
+            btn.disabled = true;
+            btn.textContent = 'Out of Stock';
+            btn.style.background = '#999';
+        }
+        
         // Add to cart
         document.getElementById('add-to-cart').addEventListener('click', () => {
             const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
@@ -394,5 +414,6 @@ loadRandomProductsFromFirestore();
 
 </body>
 </html>
+
 
 
