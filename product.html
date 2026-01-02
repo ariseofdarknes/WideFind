@@ -298,7 +298,7 @@ document.getElementById('product-price').parentElement.appendChild(stockInfo);
             btn.style.background = '#999';
         }
         
-        // Add to cart
+       // ... (inside the first loadProduct function)
         document.getElementById('add-to-cart').addEventListener('click', () => {
             const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
             addToCart({
@@ -311,7 +311,6 @@ document.getElementById('product-price').parentElement.appendChild(stockInfo);
                 image: (p.images && p.images[0]) ? p.images[0] : ''
             });
             
-            // Show success message
             const btn = document.getElementById('add-to-cart');
             const originalText = btn.textContent;
             btn.textContent = '✓ Added to Cart!';
@@ -323,21 +322,62 @@ document.getElementById('product-price').parentElement.appendChild(stockInfo);
             }, 2000);
         });
 
+        // 🔥 ADD THIS LINE HERE: Load related products after main product is done
+        loadRandomProductsFromFirestore();
+
     } catch (err) {
         console.error(err);
         document.getElementById('product-name').innerText = 'Failed to load product';
     }
 }
 
+// Keep your existing addToCart and updateCartCount functions here...
 function addToCart(item) {
     const cart = getCart();
     const existing = cart.find(ci => ci.sku === item.sku && (ci.size || '') === (item.size || ''));
-    if (existing) {
-        existing.qty = (existing.qty || 0) + item.qty;
-    } else {
-        cart.push(item);
-    }
+    if (existing) { existing.qty = (existing.qty || 0) + item.qty; } 
+    else { cart.push(item); }
     saveCart(cart);
+}
+
+// 🔥 NEW COMBINED RELATED PRODUCTS FUNCTION (Uses the same 'db' as above)
+async function loadRandomProductsFromFirestore() {
+    try {
+        // We use the 'collection' and 'getDocs' which you should add to the TOP import line
+        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const productsCol = collection(db, `artifacts/${appId}/public/data/products`);
+        const snap = await getDocs(productsCol);
+
+        let allProducts = [];
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            allProducts.push({
+                id: docSnap.id,
+                name: data.name || "Unknown",
+                price: data.price || 0,
+                image: (Array.isArray(data.images) && data.images[0]) ? data.images[0] : "https://placehold.co/300"
+            });
+        });
+
+        allProducts = allProducts.sort(() => Math.random() - 0.5).slice(0, 18);
+        const container = document.getElementById("randomProducts");
+        container.innerHTML = "";
+
+        allProducts.forEach(p => {
+            const item = document.createElement("a");
+            item.href = `product.html?id=${p.id}`;
+            item.className = "product-card-link"; // Use a class for cleaner styling
+            item.style = "border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; text-align:center; text-decoration:none; color:#000; display:block; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition:.3s;";
+            item.innerHTML = `
+                <img src="${p.image}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
+                <h4 style="font-size:15px;margin:8px 0;">${p.name}</h4>
+                <p style="color:#ff3c00;font-weight:600;">৳${p.price}</p>
+            `;
+            container.appendChild(item);
+        });
+    } catch (error) {
+        console.error("Error loading related products:", error);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -414,6 +454,7 @@ loadRandomProductsFromFirestore();
 
 </body>
 </html>
+
 
 
 
