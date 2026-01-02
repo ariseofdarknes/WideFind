@@ -75,8 +75,8 @@
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <a href="Checkout.html" class="flex items-center">
-                    <h1 class="text-2xl md:text-3xl font-black logo-gradient tracking-tight">WideFind Checkout</h1>
+                <a href="index.html" class="flex items-center">
+                    <h1 class="text-2xl md:text-3xl font-black logo-gradient tracking-tight">WideFind</h1>
                 </a>
                 
                 <a href="cart.html" class="px-4 md:px-6 py-2 bg-gray-800 hover:bg-black text-white rounded-xl font-bold transition text-sm md:text-base">
@@ -660,35 +660,47 @@
             
             try {
                 // 1. Save order to Firestore
-                await setDoc(doc(db, `artifacts/${appId}/public/data/Orders`, orderId), orderData);
+                const cleanOrder = JSON.parse(JSON.stringify(orderData));
+                await setDoc(doc(db, `artifacts/${appId}/public/data/Orders`, orderId), cleanOrder);
                 
                 // 2. Reduce product stock
-                for (const item of cartItems) {
-                    const productRef = doc(db, `artifacts/${appId}/public/data/products/${item.sku}`);
-                    await updateDoc(productRef, {
-                        stock: increment(-Number(item.qty))
+                try {
+                    const stockUpdates = cartItems.map(item => {
+                        const productRef = doc(db, `artifacts/${appId}/public/data/products/${item.sku}`);
+                        return updateDoc(productRef, {
+                            stock: increment(-Number(item.qty))
+                        });
                     });
+                    await Promise.all(stockUpdates);
+                } catch (stockError) {
+                    console.error('Stock update error:', stockError);
+                    // Continue anyway - order is already placed
                 }
                 
                 // 3. Update coupon usage (if applied)
                 if (appliedCoupon && appliedCoupon.code) {
-                    const couponRef = doc(db, `artifacts/${appId}/public/data/config/coupons`);
-                    const snap = await getDoc(couponRef);
-                    
-                    if (snap.exists()) {
-                        const updatedCodes = (snap.data().validCodes || []).map(c => {
-                            if (c.code === appliedCoupon.code) {
-                                const newUsedCount = (c.used || 0) + 1;
-                                const limit = Number(c.usageLimit) || 999999;
-                                return {
-                                    ...c,
-                                    used: newUsedCount,
-                                    status: newUsedCount >= limit ? "inactive" : (c.status || "active")
-                                };
-                            }
-                            return c;
-                        });
-                        await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
+                    try {
+                        const couponRef = doc(db, `artifacts/${appId}/public/data/config/coupons`);
+                        const snap = await getDoc(couponRef);
+                        
+                        if (snap.exists()) {
+                            const updatedCodes = (snap.data().validCodes || []).map(c => {
+                                if (c.code === appliedCoupon.code) {
+                                    const newUsedCount = (c.used || 0) + 1;
+                                    const limit = Number(c.usageLimit) || 999999;
+                                    return {
+                                        ...c,
+                                        used: newUsedCount,
+                                        status: newUsedCount >= limit ? "inactive" : (c.status || "active")
+                                    };
+                                }
+                                return c;
+                            });
+                            await setDoc(couponRef, { validCodes: updatedCodes }, { merge: true });
+                        }
+                    } catch (couponError) {
+                        console.error('Coupon update error:', couponError);
+                        // Continue anyway - order is already placed
                     }
                 }
                 
@@ -702,15 +714,17 @@
                 
                 // 5. Clear cart and redirect
                 localStorage.removeItem(CART_STORAGE_KEY);
-                showToast(`✅ Order placed! ID: ${orderId}`, 'success');
+                showToast(`✅ Order placed successfully! ID: ${orderId}`, 'success');
                 
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 2000);
                 
             } catch (error) {
-                console.error('Order submission error:', error);
-                showToast('Failed to place order. Please try again.', 'error');
+                console.error('Full order submission error:', error);
+                console.error('Error details:', error.message);
+                console.error('Error code:', error.code);
+                showToast('Failed to place order. Please check your connection and try again.', 'error');
                 placeOrderBtn.disabled = false;
                 placeOrderBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Place Order';
             }
