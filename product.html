@@ -6,6 +6,32 @@
     <title>Product Details</title>
     <link rel="stylesheet" href="style.css">
     <style>
+/* High-Quality Custom Alert Styling */
+.stock-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #ff6600, #ff4b2b);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10000;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.stock-alert.show {
+    transform: translateX(-50%) translateY(0px);
+}
+
+        
         .cart-badge {
             position: relative;
             display: inline-block;
@@ -147,7 +173,22 @@ const CART_STORAGE_KEY = 'widefindCart';
 let currentQty = 1;
 let stockLimit = 0;
 
-/* --- 2. UTILITY FUNCTIONS --- */
+/* --- 2. UI: HIGH QUALITY ALERT --- */
+function showStockAlert(message) {
+    const oldAlert = document.querySelector('.stock-alert');
+    if (oldAlert) oldAlert.remove();
+    const alertBox = document.createElement('div');
+    alertBox.className = 'stock-alert';
+    alertBox.innerHTML = `<span>⚠️</span> ${message}`;
+    document.body.appendChild(alertBox);
+    setTimeout(() => alertBox.classList.add('show'), 10);
+    setTimeout(() => {
+        alertBox.classList.remove('show');
+        setTimeout(() => alertBox.remove(), 500);
+    }, 3000);
+}
+
+/* --- 3. UTILITY FUNCTIONS --- */
 function getValidImageURL(url) {
     if (!url) return "https://placehold.co/600x600?text=No+Image";
     if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
@@ -179,7 +220,7 @@ function getQueryParam(name) {
     return params.get(name);
 }
 
-/* --- 3. MAIN PRODUCT LOADING --- */
+/* --- 4. MAIN PRODUCT LOADING --- */
 const productId = getQueryParam('id') || getQueryParam('sku');
 
 if (!productId) {
@@ -212,14 +253,14 @@ async function loadProduct(productId) {
         document.getElementById("product-description").innerText = p.description || '';
         document.getElementById("product-price").innerText = `৳${Number(p.price || 0).toFixed(0)}`;
 
-        // Stock Status
+        // Stock Status Badge
         const priceContainer = document.getElementById('product-price').parentElement;
         const stockInfo = document.createElement('p');
         stockInfo.style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
         stockInfo.innerHTML = `Availability: <span style="color: ${stockLimit > 0 ? '#28a745' : '#dc3545'}; font-weight: bold;">${stockLimit > 0 ? stockLimit + ' in stock' : 'Out of Stock'}</span>`;
         priceContainer.appendChild(stockInfo);
 
-        // Images
+        // Images Gallery
         const mainImg = document.getElementById("product-image");
         const thumbList = document.getElementById("thumbnail-list");
         let imgs = p.images;
@@ -227,7 +268,7 @@ async function loadProduct(productId) {
         
         if (imgs && imgs.length > 0) {
             mainImg.src = getValidImageURL(imgs[0]);
-            imgs.forEach((url, idx) => {
+            imgs.forEach((url) => {
                 const thumb = document.createElement('img');
                 thumb.src = getValidImageURL(url);
                 thumb.onclick = () => mainImg.src = getValidImageURL(url);
@@ -235,13 +276,13 @@ async function loadProduct(productId) {
             });
         }
 
-        // Qty Controls
+        // Quantity Controls with Stock Protection
         document.getElementById('qty-plus').onclick = () => {
             if (currentQty < stockLimit) {
                 currentQty++;
                 document.getElementById('qty-display').textContent = currentQty;
             } else {
-                alert(`Stock Limit: Only ${stockLimit} available.`);
+                showStockAlert(`Sorry, only ${stockLimit} pieces available!`);
             }
         };
         document.getElementById('qty-minus').onclick = () => {
@@ -273,7 +314,7 @@ async function loadProduct(productId) {
                 const existing = cart.find(ci => ci.sku === item.sku);
                 if (existing) {
                     if (existing.qty + item.qty > stockLimit) {
-                        alert("Cannot add more. Exceeds stock limit.");
+                        showStockAlert(`Limit Reached! Total in cart cannot exceed ${stockLimit}.`);
                         return;
                     }
                     existing.qty += item.qty;
@@ -300,19 +341,16 @@ async function loadRandomProducts() {
         snap.forEach(d => {
             if(d.id !== productId) all.push({ id: d.id, ...d.data() });
         });
-
         all = all.sort(() => Math.random() - 0.5).slice(0, 12);
         const container = document.getElementById("randomProducts");
         container.innerHTML = "";
-
         all.forEach(rp => {
             const card = document.createElement("a");
             card.href = `product.html?id=${rp.id}`;
-            card.className = "related-card"; // Add your styling
-            card.style = "border:1px solid #ddd; padding:10px; border-radius:8px; text-decoration:none; color:#000; background:#fff;";
+            card.style = "border:1px solid #ddd; padding:10px; border-radius:8px; text-decoration:none; color:#000; background:#fff; text-align:center;";
             card.innerHTML = `
-                <img src="${getValidImageURL(Array.isArray(rp.images) ? rp.images[0] : rp.images)}" style="width:100%; height:120px; object-fit:cover;">
-                <h4 style="font-size:13px; margin:5px 0;">${rp.name}</h4>
+                <img src="${getValidImageURL(Array.isArray(rp.images) ? rp.images[0] : rp.images)}" style="width:100%; height:120px; object-fit:cover; border-radius:6px;">
+                <h4 style="font-size:13px; margin:5px 0; height:34px; overflow:hidden;">${rp.name}</h4>
                 <p style="color:#ff6600; font-weight:bold;">৳${rp.price}</p>
             `;
             container.appendChild(card);
@@ -322,72 +360,9 @@ async function loadRandomProducts() {
 </script>
 
 
-
-
-
-<script type="module">
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const db = getFirestore(); // 🔥 this line FIXES the "db is not defined" error
-const appId = "WideFind";
-
-async function loadRandomProductsFromFirestore() {
-    try {
-        const productsCol = collection(db, `artifacts/${appId}/public/data/products`);
-        const snap = await getDocs(productsCol);
-
-        let allProducts = [];
-        snap.forEach(docSnap => {
-            const data = docSnap.data();
-            allProducts.push({
-                id: docSnap.id,
-                name: data.name || "Unknown",
-                price: data.price || 0,
-                image: (Array.isArray(data.images) && data.images[0]) 
-                    ? data.images[0] 
-                    : "https://placehold.co/300"
-            });
-        });
-
-        // Shuffle and pick random 18
-        allProducts = allProducts.sort(() => Math.random() - 0.5).slice(0, 18);
-
-        const container = document.getElementById("randomProducts");
-        container.innerHTML = "";
-
-        allProducts.forEach(p => {
-            const item = document.createElement("a");
-            item.href = `product.html?id=${p.id}`;
-            item.style = `
-                border:1px solid #ddd; border-radius:8px; padding:10px;
-                background:#fff; text-align:center; text-decoration:none; color:#000;
-                display:block; box-shadow:0 2px 6px rgba(0,0,0,0.1); transition:.3s;
-            `;
-            item.innerHTML = `
-                <img src="${p.image}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;" />
-                <h4 style="font-size:15px;margin:8px 0;">${p.name}</h4>
-                <p style="color:#ff3c00;font-weight:600;">৳${p.price}</p>
-            `;
-            item.onmouseover = () => item.style.transform = "scale(1.03)";
-            item.onmouseout = () => item.style.transform = "scale(1)";
-
-            container.appendChild(item);
-        });
-
-    } catch (error) {
-        console.error("Error loading products:", error);
-    }
-}
-
-loadRandomProductsFromFirestore();
-</script>
-
-
-
-
 </body>
 </html>
+
 
 
 
