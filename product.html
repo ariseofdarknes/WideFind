@@ -261,42 +261,53 @@ async function loadProduct(productId) {
             }
         };
 
-        // Add to Cart Logic
-        const cartBtn = document.getElementById('add-to-cart');
-        if (stockLimit <= 0) {
-            cartBtn.disabled = true;
-            cartBtn.textContent = 'Out of Stock';
-            cartBtn.style.background = '#999';
+  // ✅ Corrected Add to Cart Logic
+const cartBtn = document.getElementById('add-to-cart');
+
+if (stockLimit <= 0) {
+    cartBtn.disabled = true;
+    cartBtn.textContent = 'Out of Stock';
+    cartBtn.style.background = '#999';
+} else {
+    cartBtn.onclick = () => {
+        const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
+        const cart = getCart();
+
+        // 1. Create the item with a UNIQUE ID and the STOCK LIMIT
+        const item = {
+            itemId: Date.now().toString(), // ✅ Unique ID for every "Add to Cart" click
+            sku: productId,
+            name: p.name || '',
+            price: Number(p.price || 0),
+            qty: currentQty,
+            size: sizeVal,
+            stockLimit: Number(p.stock || 0), // ✅ Crucial: Passes the stock count to the cart
+            image: (p.images && p.images[0]) ? p.images[0] : ''
+        };
+        
+        // 2. Group items ONLY if they are the exact same product AND size
+        const existing = cart.find(ci => ci.sku === item.sku && ci.size === item.size);
+        
+        if (existing) {
+            // Check if adding more exceeds stock
+            if (existing.qty + item.qty > item.stockLimit) {
+                alert(`Cannot add more. Total in cart would exceed stock (${item.stockLimit} available).`);
+                return;
+            }
+            existing.qty += item.qty;
         } else {
-            cartBtn.onclick = () => {
-                const sizeVal = document.getElementById('size-select') ? document.getElementById('size-select').value : '';
-                const cart = getCart();
-                const item = {
-                    sku: productId,
-                    name: p.name || '',
-                    price: Number(p.price || 0),
-                    qty: currentQty,
-                    size: sizeVal,
-                    image: (p.images && p.images[0]) ? p.images[0] : ''
-                };
-                
-                const existing = cart.find(ci => ci.sku === item.sku && ci.size === item.size);
-                if (existing) existing.qty += item.qty;
-                else cart.push(item);
-                
-                saveCart(cart);
-                cartBtn.textContent = '✓ Added!';
-                setTimeout(() => cartBtn.textContent = 'Add to Cart', 2000);
-            };
+            cart.push(item);
         }
-
-        // Load Related Products
-        loadRandomProducts();
-
-    } catch (err) {
-        console.error(err);
-        document.getElementById('product-name').innerText = 'Failed to load product';
-    }
+        
+        saveCart(cart);
+        
+        // UI Feedback
+        cartBtn.textContent = '✓ Added!';
+        setTimeout(() => cartBtn.textContent = 'Add to Cart', 2000);
+        
+        // Optional: Update header cart count if you have one
+        if(window.updateCartCount) window.updateCartCount();
+    };
 }
 
 /* --- 4. RELATED PRODUCTS LOGIC --- */
