@@ -9,6 +9,29 @@
     
 <style>
 
+
+
+.btn-continue {
+    display: inline-block;
+    padding: 10px 20px;
+    border: 2px solid #ff6600; /* Orange border */
+    color: #ff6600 !important;
+    text-decoration: none !important;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    background: transparent;
+    text-transform: uppercase;
+}
+
+.btn-continue:hover {
+    background: #ff6600; /* Fills with orange on hover */
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+    transform: translateY(-1px);
+}
+  
 /* Styling for the Start Shopping Button */
 .btn-shopping {
     display: inline-block;
@@ -170,11 +193,12 @@
     </div>
 </div>
    
-    <header class="site-header">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-             <h1><a href="index.html" class="logo-gold">WideFind</a></h1>
-            <a href="index.html" style="font-weight: 600; color: #555; text-decoration: none;">← Continue Shopping</a>
-        </div>
+ <header class="site-header">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+        <h1><a href="index.html" class="logo-gold" style="text-decoration: none;">WideFind</a></h1>
+        <a href="index.html" class="btn-continue">← CONTINUE SHOPPING</a>
+    </div>
+</header>
     </header>
 
     <main class="container">
@@ -356,5 +380,6 @@
     
 </body>
 </html>
+
 
 
