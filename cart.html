@@ -3,384 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Shopping Cart</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Shopping Cart - WideFind</title>
     
-<style>
-
-/* Solid Continue Shopping Button */
-.btn-continue {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #ff6600; /* Solid Orange */
-    color: white !important;
-    text-decoration: none !important;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    border: none;
-}
-
-/* Overriding hover to keep it solid */
-.btn-continue:hover {
-    background-color: #e65c00; /* Just a slightly darker solid shade */
-    transform: none !important;
-    transition: none !important;
-}
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-/* Styling for the Start Shopping Button */
-.btn-shopping {
-    display: inline-block;
-    background-color: #ff6600;
-    color: white !important;
-    padding: 12px 30px;
-    border-radius: 8px;
-    text-decoration: none !important;
-    font-weight: 600;
-    margin-top: 15px;
-    transition: background 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2);
-}
-
-.btn-shopping:hover {
-    background-color: #e65c00;
-    transform: translateY(-2px);
-}
- 
-    /* 1. QUANTITY CONTROLS */
-    .qty-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 8px;
-    }
-    .qty-btn {
-        width: 32px;
-        height: 32px;
-        border: 2px solid #ff6600;
-        background: white;
-        color: #ff6600;
-        font-size: 1.2rem;
-        font-weight: bold;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .qty-btn:hover {
-        background: #ff6600;
-        color: white;
-        transform: translateY(-1px);
-    }
-    .qty-display {
-        font-weight: 600;
-        min-width: 30px;
-        text-align: center;
-        font-size: 1rem;
-    }
-
-    /* 2. MODERN STOCK ALERT (TOAST) */
-    .stock-alert {
-        position: fixed;
-        top: 25px;
-        left: 50%;
-        transform: translateX(-50%) translateY(-120px);
-        background: linear-gradient(135deg, #222, #444); /* Darker, modern look */
-        color: white;
-        padding: 16px 28px;
-        border-radius: 16px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        z-index: 12000;
-        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        font-family: 'Poppins', sans-serif;
-        font-weight: 500;
-        border-left: 5px solid #ff6600; /* Signature Brand Color */
-    }
-    .stock-alert.show {
-        transform: translateX(-50%) translateY(0px);
-    }
-
-    /* 3. HIGH-QUALITY MODAL & BUTTONS */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(8px); /* Modern Glassmorphism */
-        display: none; 
-        justify-content: center;
-        align-items: center;
-        z-index: 11000;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    .modal-overlay.active {
-        display: flex;
-        opacity: 1;
-    }
-    .modal-content {
-        background: white;
-        padding: 35px;
-        border-radius: 24px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.15);
-        transform: scale(0.9);
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .modal-overlay.active .modal-content {
-        transform: scale(1);
-    }
-    .modal-content h3 { font-size: 1.5rem; margin-bottom: 8px; color: #111; }
-    .modal-content p { color: #666; margin-bottom: 25px; font-size: 0.95rem; }
-
-    /* Modern Modal Buttons */
-    .modal-btns {
-        display: flex;
-        gap: 12px;
-    }
-    .btn-cancel, .btn-confirm-remove {
-        flex: 1;
-        padding: 14px;
-        border-radius: 14px;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 600;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-    }
-    .btn-cancel {
-        background: #f1f1f1;
-        color: #555;
-    }
-    .btn-cancel:hover {
-        background: #e5e5e5;
-    }
-    .btn-confirm-remove {
-        background: #ff4b2b; /* Modern Red-Orange */
-        color: white;
-        box-shadow: 0 8px 20px rgba(255, 75, 43, 0.25);
-    }
-    .btn-confirm-remove:hover {
-        background: #e63e22;
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(255, 75, 43, 0.35);
-    }
-</style>
-
-
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Logo Animation */
+        .logo-gradient {
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FF8C00, #FFD700);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 0%; }
+            100% { background-position: 300%; }
+        }
+        
+        /* Confirmation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1F2937;
+            color: white;
+            padding: 16px 28px;
+            border-radius: 12px;
+            border-left: 4px solid #ff6600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-50">
 
-<div class="modal-overlay" id="confirm-modal">
-    <div class="modal-content">
-        <h3>Remove Item?</h3>
-        <p>Are you sure you want to take this item out of your cart?</p>
-        <div class="modal-btns">
-            <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
-            <button class="btn-confirm-remove" id="modal-confirm-btn">Yes, Remove</button>
+    <!-- ============================================
+         HEADER SECTION
+         ============================================ -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="index.html" class="flex items-center">
+                    <h1 class="text-3xl font-black logo-gradient tracking-tight">WideFind</h1>
+                </a>
+                
+                <a href="index.html" class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Continue Shopping
+                </a>
+            </div>
         </div>
-    </div>
-</div>
-   
- <header class="site-header">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-        <h1><a href="index.html" class="logo-gold" style="text-decoration: none;">WideFind</a></h1>
-        <a href="index.html" class="btn-continue">← CONTINUE SHOPPING</a>
-    </div>
-</header>
     </header>
 
-    <main class="container">
-        <div class="cart-page-container">
-            <h2>Your Shopping Cart (<span id="cart-item-count">0</span> Items)</h2>
-            <div id="cart-items-list"></div>
-            
-            <div id="cart-empty-message" style="text-align: center; padding: 50px; color: #666; display: none;">
-    <p style="font-size: 1.1rem; margin-bottom: 20px;">Your cart is empty!</p>
-    <a href="index.html" class="btn-shopping">START SHOPPING NOW</a>
-</div>
+    <!-- ============================================
+         CART CONTENT
+         ============================================ -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <h1 class="text-3xl font-black text-gray-900 mb-2">Shopping Cart</h1>
+        <p class="text-gray-600 mb-8">
+            <span id="cart-item-count">0</span> items in your cart
+        </p>
 
-            <div class="cart-actions">
-                <div class="cart-total">
-                    Subtotal: <span id="cart-subtotal">৳0</span>
-                </div>
-                <a href="checkout.html" id="proceed-to-checkout" class="btn-buy" style="width: 250px; margin: 0;">PROCEED TO CHECKOUT</a>
+        <!-- ============================================
+             CART ITEMS LIST
+             ============================================ -->
+        <div id="cart-items-container" class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+            <!-- Cart items will be rendered here -->
+        </div>
+
+        <!-- ============================================
+             EMPTY CART STATE
+             ============================================ -->
+        <div id="empty-cart-message" class="hidden text-center py-16">
+            <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-600 mb-4">Your cart is empty</h2>
+            <p class="text-gray-500 mb-6">Add some products to get started!</p>
+            <a href="index.html" class="inline-block px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition">
+                Start Shopping
+            </a>
+        </div>
+
+        <!-- ============================================
+             CART SUMMARY (Only shown when cart has items)
+             ============================================ -->
+        <div id="cart-summary" class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
+                <span class="text-xl font-bold text-gray-900">Subtotal</span>
+                <span id="cart-subtotal" class="text-2xl font-black text-orange-600">৳0</span>
             </div>
+            
+            <a href="checkout.html" id="checkout-btn" class="block w-full py-4 bg-gray-900 hover:bg-black text-white text-center rounded-xl font-bold text-lg transition">
+                Proceed to Checkout
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
         </div>
     </main>
 
-<script>
-    const CART_STORAGE_KEY = 'widefindCart';
-    let itemToRemove = null; 
+    <!-- ============================================
+         CONFIRMATION MODAL
+         ============================================ -->
+    <div id="confirm-modal" class="modal">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash-alt text-2xl text-red-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Remove Item?</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to remove this item from your cart?</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold transition">
+                    Cancel
+                </button>
+                <button id="confirm-remove-btn" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition">
+                    Yes, Remove
+                </button>
+            </div>
+        </div>
+    </div>
 
-    // --- 1. UI: MODERN HIGH-QUALITY ALERT (TOAST) ---
-    function showStockAlert(message) {
-        const oldAlert = document.querySelector('.stock-alert');
-        if (oldAlert) oldAlert.remove();
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-600 text-sm">&copy; 2025 WideFind. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ============================================
+         JAVASCRIPT
+         ============================================ -->
+    <script>
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        const CART_STORAGE_KEY = 'widefindCart';
+        let itemToRemove = null;
+
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
         
-        const alertBox = document.createElement('div');
-        alertBox.className = 'stock-alert';
-        // Professional SVG Icon + Message
-        alertBox.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#ff6600;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            <span>${message}</span>
-        `;
-        document.body.appendChild(alertBox);
-        
-        setTimeout(() => alertBox.classList.add('show'), 10);
-        setTimeout(() => {
-            alertBox.classList.remove('show');
-            setTimeout(() => alertBox.remove(), 500);
-        }, 3500);
-    }
-
-    // --- 2. UI: MODERN CONFIRMATION MODAL ---
-    window.openConfirmModal = function(id) {
-        itemToRemove = id;
-        document.getElementById('confirm-modal').classList.add('active');
-    }
-
-    window.closeConfirmModal = function() {
-        document.getElementById('confirm-modal').classList.remove('active');
-        itemToRemove = null;
-    }
-
-    document.getElementById('modal-confirm-btn').onclick = function() {
-        if (itemToRemove) {
-            let cart = getCart();
-            cart = cart.filter(item => (item.itemId || item.sku) != itemToRemove);
-            saveCart(cart);
-            closeConfirmModal();
-            showStockAlert("Item removed from your cart.");
-        }
-    };
-
-    // --- 3. DATA & STOCK LIMIT LOGIC ---
-    function getCart() {
-        try { return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]"); }
-        catch (e) { return []; }
-    }
-
-    function saveCart(cart) {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        renderCart(); 
-    }
-
-    function getValidImageURL(url) {
-        if (!url) return "https://placehold.co/120x120?text=No+Image";
-        if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
-            const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
-            if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
-        }
-        return url;
-    }
-
-    // THIS FUNCTION CHECKS THE STOCK LIMIT PASSED FROM PRODUCT PAGE
-    window.updateQuantity = function(id, change) {
-        let cart = getCart();
-        const item = cart.find(i => (i.itemId || i.sku) == id);
-        
-        if (item) {
-            let currentQty = Number(item.qty) || 1;
-            let newQty = currentQty + change;
-            
-            if (newQty < 1) return;
-
-            // STOCK LIMIT ENFORCEMENT
-            // item.stockLimit was saved during "Add to Cart" on product.html
-            if (change > 0 && item.stockLimit !== undefined) {
-                if (newQty > Number(item.stockLimit)) {
-                    showStockAlert(`Limit Reached: Only ${item.stockLimit} available in stock!`);
-                    return;
-                }
+        /**
+         * Get cart from localStorage
+         */
+        function getCart() {
+            try {
+                return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+            } catch (e) {
+                console.error("Error reading cart:", e);
+                return [];
             }
-
-            item.qty = newQty;
-            saveCart(cart); 
-        }
-    }
-
-    // --- 4. RENDER UI ---
-    function renderCart() {
-        const cart = getCart();
-        const listContainer = document.getElementById('cart-items-list');
-        const countDisplay = document.getElementById('cart-item-count');
-        const subtotalDisplay = document.getElementById('cart-subtotal');
-        const emptyMessage = document.getElementById('cart-empty-message');
-        const actions = document.querySelector('.cart-actions');
-        
-        listContainer.innerHTML = '';
-        
-        if (cart.length === 0) {
-            countDisplay.textContent = '0';
-            subtotalDisplay.textContent = '৳0';
-            emptyMessage.style.display = 'block';
-            if (actions) actions.style.display = 'none';
-            return;
         }
 
-        emptyMessage.style.display = 'none';
-        if (actions) actions.style.display = 'flex';
+        /**
+         * Save cart to localStorage
+         */
+        function saveCart(cart) {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            renderCart();
+        }
 
-        let totalSubtotal = 0;
-        let totalQty = 0;
+        /**
+         * Validate and fix image URLs
+         */
+        function getValidImageURL(url) {
+            if (!url) return "https://placehold.co/120x120/f3f4f6/9ca3af?text=No+Image";
+            if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+                const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+                if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+            }
+            return url;
+        }
 
-        cart.forEach(item => {
-            const id = item.itemId || item.sku;
-            const price = Number(item.price) || 0;
-            const qty = Number(item.qty) || 0;
-            const itemSubtotal = price * qty;
-            
-            totalSubtotal += itemSubtotal;
-            totalQty += qty;
-            
-            const itemElement = document.createElement('div');
-            itemElement.classList.add('cart-item');
-            
-            itemElement.innerHTML = `
-                <img src="${getValidImageURL(item.image)}" alt="${item.name}">
-                <div class="item-details">
-                    <h4>${item.name}</h4>
-                    <p style="color: #666; font-weight: 500;">৳${price.toFixed(0)}</p>
-                    ${item.size ? `<p style="font-size:0.8rem; color:#888; margin-top:2px;">Size: ${item.size}</p>` : ''}
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQuantity('${id}', -1)">−</button>
-                        <span class="qty-display">${qty}</span>
-                        <button class="qty-btn" onclick="updateQuantity('${id}', 1)">+</button>
-                    </div>
-                </div>
-                <div class="item-price" style="font-weight: 600; color: #111;">৳${itemSubtotal.toFixed(0)}</div>
-                <div class="item-remove">
-                    <button onclick="openConfirmModal('${id}')" style="background:none; border:none; color:#ddd; cursor:pointer; font-size:1.2rem; transition:0.2s;" onmouseover="this.style.color='#ff4b2b'" onmouseout="this.style.color='#ddd'">✕</button>
-                </div>
+        /**
+         * Show toast notification
+         */
+        function showToast(message, icon = '✓') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="text-2xl">${icon}</span>
+                <span class="font-semibold">${message}</span>
             `;
-            listContainer.appendChild(itemElement);
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // ==========================================
+        // MODAL FUNCTIONS
+        // ==========================================
+        
+        /**
+         * Open confirmation modal
+         */
+        window.openConfirmModal = function(itemId) {
+            itemToRemove = itemId;
+            document.getElementById('confirm-modal').classList.add('active');
+        };
+
+        /**
+         * Close modal
+         */
+        window.closeModal = function() {
+            document.getElementById('confirm-modal').classList.remove('active');
+            itemToRemove = null;
+        };
+
+        /**
+         * Confirm remove item
+         */
+        document.getElementById('confirm-remove-btn').addEventListener('click', () => {
+            if (itemToRemove) {
+                let cart = getCart();
+                cart = cart.filter(item => item.itemId !== itemToRemove);
+                saveCart(cart);
+                showToast('Item removed from cart', '🗑️');
+                closeModal();
+            }
         });
 
-        countDisplay.textContent = totalQty;
-        subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
-    }
+        // ==========================================
+        // QUANTITY UPDATE WITH STOCK VALIDATION
+        // ==========================================
+        window.updateQuantity = function(itemId, change) {
+            let cart = getCart();
+            const item = cart.find(i => i.itemId === itemId);
+            
+            if (!item) return;
+            
+            const newQty = item.qty + change;
+            
+            // Don't allow quantity less than 1
+            if (newQty < 1) return;
+            
+            // Check stock limit (if available)
+            if (item.stockLimit && newQty > item.stockLimit) {
+                showToast(`Only ${item.stockLimit} available in stock!`, '⚠️');
+                return;
+            }
+            
+            item.qty = newQty;
+            saveCart(cart);
+        };
 
-    document.addEventListener("DOMContentLoaded", renderCart);
-</script>
+        // ==========================================
+        // RENDER CART
+        // ==========================================
+        function renderCart() {
+            const cart = getCart();
+            const container = document.getElementById('cart-items-container');
+            const emptyMessage = document.getElementById('empty-cart-message');
+            const summary = document.getElementById('cart-summary');
+            const itemCount = document.getElementById('cart-item-count');
+            
+            // Update item count
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            itemCount.textContent = totalItems;
+            
+            // If cart is empty, show empty state
+            if (cart.length === 0) {
+                container.innerHTML = '';
+                emptyMessage.classList.remove('hidden');
+                summary.style.display = 'none';
+                return;
+            }
+            
+            // Hide empty message and show summary
+            emptyMessage.classList.add('hidden');
+            summary.style.display = 'block';
+            
+            // Calculate subtotal
+            let subtotal = 0;
+            
+            // Render cart items
+            container.innerHTML = cart.map(item => {
+                const itemSubtotal = item.price * item.qty;
+                subtotal += itemSubtotal;
+                
+                return `
+                    <div class="flex items-center gap-4 p-6 border-b border-gray-100 last:border-b-0">
+                        <!-- Product Image -->
+                        <img src="${getValidImageURL(item.image)}" 
+                             alt="${item.name}" 
+                             class="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+                             onerror="this.src='https://placehold.co/120x120/f3f4f6/9ca3af?text=No+Image'"
+                        />
+                        
+                        <!-- Product Details -->
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-gray-900 mb-1">${item.name}</h3>
+                            <p class="text-sm text-gray-600 mb-2">৳${Number(item.price).toFixed(0)} each</p>
+                            ${item.size && item.size !== 'Standard' ? `<p class="text-xs text-gray-500">Size: ${item.size}</p>` : ''}
+                            
+                            <!-- Quantity Controls -->
+                            <div class="flex items-center gap-3 mt-3">
+                                <button onclick="updateQuantity('${item.itemId}', -1)" 
+                                        class="w-8 h-8 border-2 border-orange-600 text-orange-600 rounded-lg font-bold hover:bg-orange-600 hover:text-white transition">
+                                    −
+                                </button>
+                                <span class="font-bold text-lg w-8 text-center">${item.qty}</span>
+                                <button onclick="updateQuantity('${item.itemId}', 1)" 
+                                        class="w-8 h-8 border-2 border-orange-600 text-orange-600 rounded-lg font-bold hover:bg-orange-600 hover:text-white transition">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Item Subtotal & Remove Button -->
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-xl font-black text-gray-900 mb-4">৳${itemSubtotal.toFixed(0)}</p>
+                            <button onclick="openConfirmModal('${item.itemId}')" 
+                                    class="text-red-500 hover:text-red-700 transition">
+                                <i class="fas fa-trash-alt text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update subtotal display
+            document.getElementById('cart-subtotal').textContent = `৳${subtotal.toFixed(0)}`;
+        }
 
-
-
-    
+        // ==========================================
+        // INITIALIZE ON PAGE LOAD
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCart();
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-
