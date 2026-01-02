@@ -3,82 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Details | WideFind</title>
+    <title>Product Details - WideFind</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Logo Animation */
+        .logo-gradient {
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FF8C00, #FFD700);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 0%; }
+            100% { background-position: 300%; }
+        }
+        
+        /* Thumbnail Active State */
+        .thumbnail {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+        
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #ff6600;
+            transform: scale(1.05);
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1F2937;
+            color: white;
+            padding: 16px 28px;
+            border-radius: 12px;
+            border-left: 4px solid #ff6600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* Related Product Hover */
+        .related-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .related-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+    </style>
 </head>
-<body class="bg-[#f8f9fa]">
+<body class="bg-gray-50">
 
-    <header class="glass-header">
-        <div class="container mx-auto px-4 h-20 flex items-center justify-between">
-            <a href="index.html" class="logo-gold">WideFind</a>
-            <a href="cart.html" class="relative group">
-                <span class="text-2xl">🛒</span>
-                <span id="cart-count" class="cart-badge">0</span>
-            </a>
+    <!-- ============================================
+         HEADER SECTION
+         ============================================ -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="index.html" class="flex items-center">
+                    <h1 class="text-3xl font-black logo-gradient tracking-tight">WideFind</h1>
+                </a>
+                
+                <a href="cart.html" class="relative group">
+                    <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                        <i class="fas fa-shopping-cart text-orange-600 text-xl"></i>
+                    </div>
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">0</span>
+                </a>
+            </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-10">
-        <nav class="mb-8 text-sm text-gray-500">
-            <a href="index.html" class="hover:text-orange-600">Home</a> / 
-            <span id="breadcrumb-cat">Category</span> / 
-            <span id="breadcrumb-name" class="text-gray-900 font-medium">Product</span>
-        </nav>
-
-        <div class="bg-white rounded-[32px] p-6 md:p-12 shadow-sm border border-gray-100">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                
-                <div class="space-y-4">
-                    <div class="main-img-container rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 aspect-square">
-                        <img id="main-img" src="" alt="Product Image" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+    <!-- ============================================
+         PRODUCT DETAILS SECTION
+         ============================================ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Back Button -->
+        <a href="index.html" class="inline-flex items-center gap-2 text-gray-600 hover:text-orange-600 mb-6 font-semibold transition">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Shop</span>
+        </a>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            
+            <!-- ============================================
+                 LEFT: IMAGE GALLERY
+                 ============================================ -->
+            <div>
+                <!-- Main Image -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
+                    <div class="aspect-square">
+                        <img id="main-image" 
+                             src="https://placehold.co/600x600/f3f4f6/9ca3af?text=Loading..." 
+                             alt="Product" 
+                             class="w-full h-full object-cover"
+                        />
                     </div>
-                    <div id="thumb-grid" class="grid grid-cols-4 gap-4">
-                        </div>
                 </div>
-
-                <div class="flex flex-col">
-                    <span id="prod-category" class="text-orange-600 font-bold text-xs uppercase tracking-widest mb-2">Category</span>
-                    <h1 id="prod-title" class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">Loading Product...</h1>
-                    
-                    <div class="flex items-center gap-4 mb-8">
-                        <span id="prod-price" class="text-3xl font-extrabold text-gray-900">৳0</span>
-                        <span id="prod-old-price" class="text-xl text-gray-400 line-through hidden">৳0</span>
-                        <span id="prod-discount" class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold hidden">0% OFF</span>
-                    </div>
-
-                    <p id="prod-desc" class="text-gray-600 leading-relaxed mb-8 border-t border-gray-100 pt-8">
-                        Please wait while we fetch the product details...
+                
+                <!-- Thumbnail Gallery -->
+                <div id="thumbnail-gallery" class="flex gap-3 overflow-x-auto pb-2">
+                    <!-- Thumbnails will be loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- ============================================
+                 RIGHT: PRODUCT INFORMATION
+                 ============================================ -->
+            <div>
+                <!-- Product Name -->
+                <h1 id="product-name" class="text-3xl md:text-4xl font-black text-gray-900 mb-4">
+                    Loading...
+                </h1>
+                
+                <!-- Price Section -->
+                <div class="flex items-center gap-3 mb-6 flex-wrap">
+                    <span id="sale-price" class="text-4xl font-black text-orange-600">৳0</span>
+                    <span id="original-price" class="text-2xl text-gray-400 line-through hidden">৳0</span>
+                    <span id="discount-badge" class="text-lg font-bold text-green-600 hidden">-0%</span>
+                </div>
+                
+                <!-- Stock Status -->
+                <div id="stock-status" class="mb-6">
+                    <p class="text-sm text-gray-600">
+                        Availability: <span id="stock-text" class="font-bold">Checking...</span>
                     </p>
-
-                    <div class="mt-auto space-y-6">
-                        <div class="flex items-center gap-6">
-                            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                                <button onclick="updateQty(-1)" class="px-5 py-3 hover:bg-gray-200 transition-colors font-bold text-xl">-</button>
-                                <input type="number" id="qty-input" value="1" min="1" class="w-12 text-center bg-transparent font-bold outline-none" readonly>
-                                <button onclick="updateQty(1)" class="px-5 py-3 hover:bg-gray-200 transition-colors font-bold text-xl">+</button>
-                            </div>
-                            <p class="text-sm text-gray-400 font-medium">In Stock & Ready to Ship</p>
-                        </div>
-
-                        <button onclick="addToCartDetailed()" class="w-full bg-black text-white py-5 rounded-2xl font-bold text-lg uppercase tracking-wide hover:bg-orange-600 transition-all shadow-xl shadow-black/10 active:scale-[0.98]">
-                            Add to Shopping Bag
+                </div>
+                
+                <!-- Description -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Description</h3>
+                    <p id="product-description" class="text-gray-600 leading-relaxed">
+                        Loading product details...
+                    </p>
+                </div>
+                
+                <!-- Size Selector (if applicable) -->
+                <div id="size-section" class="mb-6 hidden">
+                    <h3 class="text-lg font-bold text-gray-900 mb-3">Select Size</h3>
+                    <div id="size-options" class="flex gap-2 flex-wrap">
+                        <!-- Size buttons will be loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Quantity Selector -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-3">Quantity</h3>
+                    <div class="flex items-center gap-4">
+                        <button id="qty-minus" class="w-12 h-12 border-2 border-orange-600 text-orange-600 rounded-xl font-bold text-xl hover:bg-orange-600 hover:text-white transition">
+                            −
+                        </button>
+                        <span id="qty-display" class="text-2xl font-bold w-12 text-center">1</span>
+                        <button id="qty-plus" class="w-12 h-12 border-2 border-orange-600 text-orange-600 rounded-xl font-bold text-xl hover:bg-orange-600 hover:text-white transition">
+                            +
                         </button>
                     </div>
                 </div>
-
+                
+                <!-- Add to Cart Button -->
+                <button id="add-to-cart-btn" class="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold text-lg shadow-xl transition-all">
+                    Add to Cart
+                </button>
             </div>
         </div>
+        
+        <!-- ============================================
+             RELATED PRODUCTS SECTION
+             ============================================ -->
+        <section class="mt-16">
+            <h2 class="text-2xl font-black text-gray-900 mb-6">You May Also Like</h2>
+            <div id="related-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Related products will be loaded dynamically -->
+            </div>
+        </section>
     </main>
 
-    <div id="custom-cart-alert" class="cart-alert">
-        <span id="alert-msg"></span>
-    </div>
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-600 text-sm">&copy; 2025 WideFind. All Rights Reserved.</p>
+        </div>
+    </footer>
 
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ============================================
+         FIREBASE & JAVASCRIPT
+         ============================================ -->
     <script type="module">
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDFsnU6n1-ag1XB8QgJcj5rqjWHxaJ71v8",
@@ -92,111 +242,363 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
+        const appId = "WideFind";
+        const CART_STORAGE_KEY = 'widefindCart';
+
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
         let currentProduct = null;
+        let currentQty = 1;
+        let stockLimit = 0;
+        let selectedSize = null;
 
-        async function loadProduct() {
-            if (!productId) { window.location.href = 'index.html'; return; }
-
-            try {
-                const docRef = doc(db, "artifacts", "WideFind", "public", "data", "products", productId);
-                const snap = await getDoc(docRef);
-
-                if (snap.exists()) {
-                    currentProduct = { id: snap.id, ...snap.data() };
-                    displayProduct(currentProduct);
-                } else {
-                    document.getElementById('prod-title').innerText = "Product Not Found";
-                }
-            } catch (err) { console.error(err); }
+        // ==========================================
+        // UTILITY FUNCTIONS
+        // ==========================================
+        
+        /**
+         * Get product ID from URL
+         */
+        function getProductId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
         }
 
-        function displayProduct(p) {
-            document.getElementById('prod-title').innerText = p.name;
-            document.getElementById('breadcrumb-name').innerText = p.name;
-            document.getElementById('prod-category').innerText = p.category || "General";
-            document.getElementById('breadcrumb-cat').innerText = p.category || "General";
-            document.getElementById('prod-desc').innerText = p.description || "No description available for this premium product.";
-            document.getElementById('prod-price').innerText = `৳${p.price}`;
+        /**
+         * Validate image URLs
+         */
+        function getValidImageURL(url) {
+            if (!url) return "https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image";
+            if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
+                const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
+                if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
+            }
+            return url;
+        }
 
-            // Image Gallery Logic
-            const images = Array.isArray(p.images) ? p.images : [p.images];
-            const mainImg = document.getElementById('main-img');
-            mainImg.src = images[0];
-
-            const thumbGrid = document.getElementById('thumb-grid');
-            images.forEach((img, idx) => {
-                const thumb = document.createElement('div');
-                thumb.className = `cursor-pointer rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-orange-500' : 'border-transparent'}`;
-                thumb.innerHTML = `<img src="${img}" class="w-full h-20 object-cover">`;
-                thumb.onclick = () => {
-                    mainImg.src = img;
-                    document.querySelectorAll('#thumb-grid div').forEach(d => d.classList.remove('border-orange-500'));
-                    thumb.classList.add('border-orange-500');
-                };
-                thumbGrid.appendChild(thumb);
-            });
-
-            // Discount UI
-            if (p.originalPrice && p.originalPrice > p.price) {
-                const oldPriceEl = document.getElementById('prod-old-price');
-                const discEl = document.getElementById('prod-discount');
-                const percent = Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100);
-                
-                oldPriceEl.innerText = `৳${p.originalPrice}`;
-                oldPriceEl.classList.remove('hidden');
-                discEl.innerText = `${percent}% OFF`;
-                discEl.classList.remove('hidden');
+        /**
+         * Get cart from localStorage
+         */
+        function getCart() {
+            try {
+                return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+            } catch (e) {
+                return [];
             }
         }
 
-        window.updateQty = function(val) {
-            const input = document.getElementById('qty-input');
-            let newVal = parseInt(input.value) + val;
-            if (newVal < 1) newVal = 1;
-            input.value = newVal;
+        /**
+         * Save cart and update count
+         */
+        function saveCart(cart) {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            updateCartCount();
+        }
+
+        /**
+         * Update cart badge
+         */
+        function updateCartCount() {
+            const cart = getCart();
+            const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+            document.getElementById('cart-count').textContent = totalItems;
+        }
+
+        /**
+         * Show toast notification
+         */
+        function showToast(message, icon = '✓') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="text-2xl">${icon}</span>
+                <span class="font-semibold">${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // ==========================================
+        // LOAD PRODUCT DETAILS
+        // ==========================================
+        async function loadProduct(productId) {
+            try {
+                const productRef = doc(db, `artifacts/${appId}/public/data/products/${productId}`);
+                const snap = await getDoc(productRef);
+                
+                if (!snap.exists()) {
+                    document.getElementById('product-name').textContent = 'Product Not Found';
+                    showToast('Product not found', '❌');
+                    return;
+                }
+                
+                currentProduct = { id: productId, ...snap.data() };
+                stockLimit = Number(currentProduct.stock) || 0;
+                
+                // Update UI
+                document.getElementById('product-name').textContent = currentProduct.name || 'Unnamed Product';
+                document.getElementById('product-description').textContent = currentProduct.description || 'No description available.';
+                
+                // Price Display
+                document.getElementById('sale-price').textContent = `৳${Number(currentProduct.price || 0).toFixed(0)}`;
+                
+                if (currentProduct.originalPrice && Number(currentProduct.originalPrice) > 0) {
+                    const originalEl = document.getElementById('original-price');
+                    originalEl.textContent = `৳${Number(currentProduct.originalPrice).toFixed(0)}`;
+                    originalEl.classList.remove('hidden');
+                }
+                
+                // Discount Badge
+                let discountPercent = 0;
+                if (currentProduct.discountPercent && Number(currentProduct.discountPercent) > 0) {
+                    discountPercent = Math.round(Number(currentProduct.discountPercent));
+                } else if (currentProduct.discountAmount && Number(currentProduct.originalPrice) > 0) {
+                    discountPercent = Math.round((Number(currentProduct.discountAmount) / Number(currentProduct.originalPrice)) * 100);
+                }
+                
+                if (discountPercent > 0) {
+                    const discountEl = document.getElementById('discount-badge');
+                    discountEl.textContent = `-${discountPercent}%`;
+                    discountEl.classList.remove('hidden');
+                }
+                
+                // Stock Status
+                const stockText = document.getElementById('stock-text');
+                if (stockLimit > 0) {
+                    stockText.textContent = `${stockLimit} in stock`;
+                    stockText.className = 'font-bold text-green-600';
+                } else {
+                    stockText.textContent = 'Out of Stock';
+                    stockText.className = 'font-bold text-red-600';
+                    document.getElementById('add-to-cart-btn').disabled = true;
+                    document.getElementById('add-to-cart-btn').textContent = 'Out of Stock';
+                    document.getElementById('add-to-cart-btn').className = 'w-full py-4 bg-gray-300 text-gray-600 rounded-2xl font-bold text-lg cursor-not-allowed';
+                }
+                
+                // Image Gallery
+                loadImageGallery(currentProduct.images);
+                
+                // Size Options (if available)
+                if (currentProduct.sizes && currentProduct.sizes.length > 0) {
+                    loadSizeOptions(currentProduct.sizes);
+                }
+                
+            } catch (error) {
+                console.error('Error loading product:', error);
+                showToast('Failed to load product', '❌');
+            }
+        }
+
+        // ==========================================
+        // LOAD IMAGE GALLERY
+        // ==========================================
+        function loadImageGallery(images) {
+            let imageArray = [];
+            
+            if (Array.isArray(images)) {
+                imageArray = images;
+            } else if (typeof images === 'string' && images.trim()) {
+                imageArray = images.split(',').map(img => img.trim()).filter(Boolean);
+            }
+            
+            if (imageArray.length === 0) {
+                imageArray = ['https://placehold.co/600x600/f3f4f6/9ca3af?text=No+Image'];
+            }
+            
+            // Set main image
+            document.getElementById('main-image').src = getValidImageURL(imageArray[0]);
+            
+            // Load thumbnails
+            const gallery = document.getElementById('thumbnail-gallery');
+            gallery.innerHTML = imageArray.map((url, index) => `
+                <img src="${getValidImageURL(url)}" 
+                     alt="Thumbnail ${index + 1}" 
+                     class="thumbnail ${index === 0 ? 'active' : ''} w-20 h-20 rounded-lg object-cover"
+                     onclick="changeMainImage('${getValidImageURL(url)}', this)"
+                />
+            `).join('');
+        }
+
+        /**
+         * Change main image when thumbnail is clicked
+         */
+        window.changeMainImage = function(url, element) {
+            document.getElementById('main-image').src = url;
+            
+            // Update active state
+            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+            element.classList.add('active');
         };
 
-        window.addToCartDetailed = function() {
-            const qty = parseInt(document.getElementById('qty-input').value);
-            let cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
-            const img = Array.isArray(currentProduct.images) ? currentProduct.images[0] : currentProduct.images;
+        // ==========================================
+        // LOAD SIZE OPTIONS
+        // ==========================================
+        function loadSizeOptions(sizes) {
+            const section = document.getElementById('size-section');
+            const container = document.getElementById('size-options');
             
-            const existing = cart.find(i => i.itemId === `${currentProduct.id}-std`);
-            if (existing) {
-                existing.qty += qty;
+            section.classList.remove('hidden');
+            
+            container.innerHTML = sizes.map((size, index) => `
+                <button onclick="selectSize('${size}', this)" 
+                        class="size-btn px-6 py-3 border-2 border-gray-300 rounded-xl font-bold hover:border-orange-600 hover:text-orange-600 transition ${index === 0 ? 'border-orange-600 text-orange-600' : ''}">
+                    ${size}
+                </button>
+            `).join('');
+            
+            // Set first size as default
+            selectedSize = sizes[0];
+        }
+
+        /**
+         * Handle size selection
+         */
+        window.selectSize = function(size, element) {
+            selectedSize = size;
+            
+            // Update button states
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.className = 'size-btn px-6 py-3 border-2 border-gray-300 rounded-xl font-bold hover:border-orange-600 hover:text-orange-600 transition';
+            });
+            element.className = 'size-btn px-6 py-3 border-2 border-orange-600 text-orange-600 rounded-xl font-bold transition';
+        };
+
+        // ==========================================
+        // QUANTITY CONTROLS
+        // ==========================================
+        document.getElementById('qty-minus').addEventListener('click', () => {
+            if (currentQty > 1) {
+                currentQty--;
+                document.getElementById('qty-display').textContent = currentQty;
+            }
+        });
+
+        document.getElementById('qty-plus').addEventListener('click', () => {
+            if (currentQty < stockLimit) {
+                currentQty++;
+                document.getElementById('qty-display').textContent = currentQty;
             } else {
+                showToast(`Sorry, only ${stockLimit} available!`, '⚠️');
+            }
+        });
+
+        // ==========================================
+        // ADD TO CART
+        // ==========================================
+        document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+            if (!currentProduct || stockLimit <= 0) return;
+            
+            let cart = getCart();
+            
+            // Create unique item ID (includes size if applicable)
+            const itemId = selectedSize ? `${currentProduct.id}-${selectedSize}` : currentProduct.id;
+            
+            // Check if item already exists in cart
+            const existingItem = cart.find(item => item.itemId === itemId);
+            
+            if (existingItem) {
+                // Check if adding quantity would exceed stock limit
+                const newQty = existingItem.qty + currentQty;
+                if (newQty > stockLimit) {
+                    showToast(`Cannot add more. Only ${stockLimit} available!`, '⚠️');
+                    return;
+                }
+                existingItem.qty = newQty;
+            } else {
+                // Add new item to cart
                 cart.push({
-                    itemId: `${currentProduct.id}-std`,
+                    itemId: itemId,
                     sku: currentProduct.id,
                     name: currentProduct.name,
                     price: currentProduct.price,
-                    image: img,
-                    qty: qty,
-                    size: "Standard"
+                    image: currentProduct.images && currentProduct.images.length > 0 ? currentProduct.images[0] : '',
+                    qty: currentQty,
+                    size: selectedSize || 'Standard',
+                    stockLimit: stockLimit
                 });
             }
             
-            localStorage.setItem('widefindCart', JSON.stringify(cart));
+            saveCart(cart);
+            showToast(`${currentProduct.name} added to cart!`, '🛒');
+            
+            // Reset quantity
+            currentQty = 1;
+            document.getElementById('qty-display').textContent = currentQty;
+        });
+
+        // ==========================================
+        // LOAD RELATED PRODUCTS
+        // ==========================================
+        async function loadRelatedProducts() {
+            try {
+                const productsRef = collection(db, `artifacts/${appId}/public/data/products`);
+                const snapshot = await getDocs(productsRef);
+                
+                let allProducts = [];
+                snapshot.forEach(doc => {
+                    if (doc.id !== getProductId()) { // Exclude current product
+                        allProducts.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+                
+                // Shuffle and take first 8 products
+                const shuffled = allProducts.sort(() => Math.random() - 0.5).slice(0, 8);
+                
+                const container = document.getElementById('related-products');
+                container.innerHTML = shuffled.map(product => {
+                    const firstImage = Array.isArray(product.images) && product.images.length > 0 
+                        ? product.images[0] 
+                        : (typeof product.images === 'string' ? product.images.split(',')[0] : '');
+                    
+                    return `
+                        <a href="product.html?id=${product.id}" class="related-card bg-white rounded-2xl shadow-md overflow-hidden block">
+                            <div class="aspect-square bg-gray-100">
+                                <img src="${getValidImageURL(firstImage)}" 
+                                     alt="${product.name}" 
+                                     class="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-sm line-clamp-2 h-10 mb-2">${product.name || 'Product'}</h3>
+                                <p class="text-lg font-black text-orange-600">৳${Number(product.price || 0).toFixed(0)}</p>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading related products:', error);
+            }
+        }
+
+        // ==========================================
+        // INITIALIZE ON PAGE LOAD
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            const productId = getProductId();
+            
+            if (!productId) {
+                showToast('No product specified', '❌');
+                setTimeout(() => window.location.href = 'index.html', 2000);
+                return;
+            }
+            
+            // Update cart count
             updateCartCount();
-            showToast(`${currentProduct.name} added to cart!`);
-        };
-
-        function updateCartCount() {
-            const cart = JSON.parse(localStorage.getItem('widefindCart') || "[]");
-            document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
-        }
-
-        function showToast(m) {
-            const t = document.getElementById('custom-cart-alert');
-            t.innerText = m;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
-
-        loadProduct();
-        updateCartCount();
+            
+            // Load product details
+            await loadProduct(productId);
+            
+            // Load related products
+            await loadRelatedProducts();
+        });
     </script>
 </body>
 </html>
