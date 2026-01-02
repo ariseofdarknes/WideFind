@@ -68,8 +68,9 @@
 <script>
     const CART_STORAGE_KEY = 'widefindCart';
 
+    // 1. UTILITY: Fix Imgur and Placeholder URLs
     function getValidImageURL(url) {
-        if (!url) return "images/placeholder.png";
+        if (!url) return "https://placehold.co/120x120?text=No+Image";
         if (url.includes("imgur.com") && !url.includes("i.imgur.com")) {
             const match = url.match(/imgur\.com\/(?:a\/|gallery\/)?([A-Za-z0-9]+)/);
             if (match && match[1]) return `https://i.imgur.com/${match[1]}.jpg`;
@@ -77,6 +78,7 @@
         return url;
     }
 
+    // 2. DATA MANAGEMENT
     function getCart() {
         try {
             const cartString = localStorage.getItem(CART_STORAGE_KEY);
@@ -89,10 +91,9 @@
         renderCart(); 
     }
     
-    // ATTACH TO WINDOW SO ONCLICK WORKS
+    // 3. ACTIONS (Attached to 'window' so HTML buttons can see them)
     window.removeItem = function(id) {
         let cart = getCart();
-        // Check against both itemId and sku just in case
         cart = cart.filter(item => (item.itemId || item.sku) != id);
         saveCart(cart);
     }
@@ -102,12 +103,27 @@
         const item = cart.find(i => (i.itemId || i.sku) == id);
         
         if (item) {
-            let q = Number(item.qty) || 1;
-            item.qty = Math.max(1, q + change); 
+            let currentQty = Number(item.qty) || 1;
+            let newQty = currentQty + change;
+
+            // Stop if trying to go below 1
+            if (newQty < 1) return;
+
+            // STOCK LIMIT CHECK
+            // Checks against the 'stockLimit' saved when added to cart
+            if (change > 0 && item.stockLimit !== undefined) {
+                if (newQty > Number(item.stockLimit)) {
+                    alert(`Only ${item.stockLimit} items available in stock!`);
+                    return;
+                }
+            }
+
+            item.qty = newQty;
             saveCart(cart); 
         }
     }
 
+    // 4. UI RENDERING
     function renderCart() {
         const cart = getCart();
         const listContainer = document.getElementById('cart-items-list');
@@ -133,11 +149,13 @@
         let totalQty = 0;
 
         cart.forEach(item => {
-            // Fallback to SKU if itemId is missing
-            const identifier = item.itemId || item.sku;
-            const itemSubtotal = (Number(item.price) || 0) * (Number(item.qty) || 0);
+            const id = item.itemId || item.sku;
+            const price = Number(item.price) || 0;
+            const qty = Number(item.qty) || 0;
+            const itemSubtotal = price * qty;
+            
             totalSubtotal += itemSubtotal;
-            totalQty += Number(item.qty) || 0;
+            totalQty += qty;
             
             const itemElement = document.createElement('div');
             itemElement.classList.add('cart-item');
@@ -146,19 +164,19 @@
                 <img src="${getValidImageURL(item.image)}" alt="${item.name}">
                 <div class="item-details">
                     <h4>${item.name}</h4>
-                    <p>Unit Price: ৳${Number(item.price||0).toFixed(0)}</p>
-                    ${item.size ? `<p>Size: ${item.size}</p>` : ''}
+                    <p>Unit Price: ৳${price.toFixed(0)}</p>
+                    ${item.size ? `<p class="item-size">Size: ${item.size}</p>` : ''}
                     <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQuantity('${identifier}', -1)">−</button>
-                        <span class="qty-display">${item.qty}</span>
-                        <button class="qty-btn" onclick="updateQuantity('${identifier}', 1)">+</button>
+                        <button class="qty-btn" onclick="updateQuantity('${id}', -1)">−</button>
+                        <span class="qty-display">${qty}</span>
+                        <button class="qty-btn" onclick="updateQuantity('${id}', 1)">+</button>
                     </div>
                 </div>
                 <div class="item-price">
                     ৳${itemSubtotal.toFixed(0)}
                 </div>
                 <div class="item-remove">
-                    <button onclick="if(confirm('Remove item?')) removeItem('${identifier}')">✕</button>
+                    <button onclick="if(confirm('Remove item?')) removeItem('${id}')">✕</button>
                 </div>
             `;
             listContainer.appendChild(itemElement);
@@ -168,14 +186,15 @@
         subtotalDisplay.textContent = `৳${totalSubtotal.toFixed(0)}`;
     }
 
+    // 5. INITIALIZE
     document.addEventListener("DOMContentLoaded", renderCart);
 </script>
-
 
     
 
 </body>
 </html>
+
 
 
 
