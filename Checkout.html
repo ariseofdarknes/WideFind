@@ -236,10 +236,10 @@
                 <!-- Online Payment Fields (Hidden by default) -->
                 <div id="online-payment-fields" class="hidden border-2 border-dashed border-orange-300 bg-orange-50 p-6 rounded-xl">
                     <p class="text-lg font-bold text-orange-800 mb-3">Complete Mobile Payment</p>
-                    <div class="bg-orange-100 p-4 rounded-xl mb-4 text-center">
-                        <span class="text-2xl font-black text-orange-700">01729789847</span>
-                        <span class="block text-sm text-gray-600 font-semibold">(Bkash/Nagad)</span>
-                    </div>
+                 <div class="bg-orange-100 p-4 rounded-xl mb-4 text-center">
+    <span id="display-payment-number" class="text-2xl font-black text-orange-700">Loading...</span>
+    <span id="display-payment-name" class="block text-sm text-gray-600 font-semibold">(Bkash/Nagad)</span>
+</div>
                     
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <button type="button" class="payment-channel-btn" data-channel="Bkash">
@@ -763,6 +763,20 @@
             // Render order summary
             updateOrderSummary();
         });
+
+async function syncPaymentDetails() {
+    const settingsRef = doc(db, `artifacts/${appId}/public/data/config/siteSettings`);
+    const snap = await getDoc(settingsRef);
+    if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById('display-payment-number').innerText = data.paymentNumber || '017XXXXXXXX';
+        document.getElementById('display-payment-name').innerText = `(${data.paymentName || 'Payment'})`;
+    }
+}
+
+// Call it inside your DOMContentLoaded listener or at the end of the script
+syncPaymentDetails();
+        
     </script>
 
     <style>
@@ -813,5 +827,6 @@
     </style>
 </body>
 </html>
+
 
 
